@@ -35,6 +35,8 @@
   <!-- ============ MENU FIXE ============ -->
   <header class="site-header">
     <a class="brand" href="#hero" aria-label="Vivi's Lab, accueil">
+      <!-- Photo de profil en petit rond, bordure rose framboise (décorative : le lien porte déjà un nom) -->
+      <img class="brand-photo" src="assets/photo.jpg" alt="" width="40" height="40">
       <svg class="logo-heart" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
         <path class="heart" d="M16 28C6 21 3 15.5 3 11.5A6.5 6.5 0 0 1 16 9a6.5 6.5 0 0 1 13 2.5C29 15.5 26 21 16 28z"/>
         <path class="beat" pathLength="100" d="M5 16h6l2-4 3 8 2.5-6 1.5 2H27"/>
@@ -298,27 +300,73 @@
           </svg>
           <div class="postmark" aria-hidden="true">TOULON<br>2027</div>
 
-          <!-- TODO : remplacer YOUR_FORM_ID par l'identifiant de ton formulaire Formspree (https://formspree.io) -->
-          <form id="contact-form" class="form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate>
-            <p class="dear">Chère Vivi,</p>
-            <label for="name">Nom</label>
-            <input id="name" name="name" type="text" autocomplete="name" required>
+          <div class="left">
+            <!-- TODO : remplacer YOUR_FORM_ID par l'identifiant de ton formulaire Formspree (https://formspree.io).
+                 Ce même identifiant sert aussi au bouton « Un souci ? » (il est lu ici par script.js). -->
+            <form id="contact-form" class="form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate>
+              <p class="dear">Chère Vivi,</p>
+              <label for="name">Nom</label>
+              <input id="name" name="name" type="text" autocomplete="name" required>
 
-            <label for="email">E-mail</label>
-            <input id="email" name="email" type="email" autocomplete="email" required>
+              <label for="email">E-mail</label>
+              <input id="email" name="email" type="email" autocomplete="email" required>
 
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="5" required></textarea>
+              <label for="subject">Sujet</label>
+              <select id="subject" name="subject" required>
+                <option>Offre de stage</option>
+                <option>Question</option>
+                <option>Collaboration</option>
+                <option>Autre</option>
+              </select>
 
-            <!-- Champ piège anti-spam : invisible pour les humains -->
-            <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="5" required></textarea>
 
-            <button type="submit" class="btn btn-primary">Envoyer la carte</button>
-            <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
-          </form>
+              <label for="file-link">Lien vers un fichier <span class="opt">(facultatif)</span></label>
+              <input id="file-link" name="file_link" type="url" placeholder="Drive, WeTransfer…" autocomplete="off">
+
+              <!-- Objet de l'e-mail reçu : complété par script.js avec le sujet choisi -->
+              <input type="hidden" name="_subject" id="mail-subject" value="Message depuis le portfolio">
+              <!-- Champ piège anti-spam : invisible pour les humains -->
+              <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp">
+
+              <button type="submit" class="btn btn-primary">Envoyer la carte</button>
+              <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+
+              <!-- Message de succès animé (affiché après l'envoi) -->
+              <div class="success" hidden>
+                <svg viewBox="0 0 64 64" width="84" height="84" aria-hidden="true" focusable="false">
+                  <circle class="ok-ring" cx="32" cy="32" r="28" pathLength="100"/>
+                  <path class="ok-check" d="M19 33l9 9 17-20" pathLength="100"/>
+                </svg>
+                <span class="confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <h3 tabindex="-1">Carte envoyée !</h3>
+                <p>Merci pour ton message, je te réponds très vite.</p>
+                <button type="button" class="btn btn-ghost" id="again">Écrire un autre message</button>
+              </div>
+            </form>
+
+            <!-- Envoi de fichier par e-mail (n'importe quel format en pièce jointe) -->
+            <div class="alt-file">
+              <a class="btn btn-ghost" href="mailto:amaviviekouvo@gmail.com?subject=Envoi%20de%20fichier%20depuis%20ton%20portfolio&amp;body=Bonjour%20Vivi%2C%0D%0A%0D%0AJe%20t%27envoie%20un%20fichier%20en%20pi%C3%A8ce%20jointe.%0D%0A">Envoyer un fichier par mail</a>
+              <p class="note">Ton application e-mail s'ouvre : tu peux y joindre n'importe quel format (PDF, ZIP, image, vidéo…).</p>
+            </div>
+          </div>
 
           <div class="address">
-            <h3>Me retrouver</h3>
+            <h3>Écrire directement</h3>
+            <div class="mail">
+              <span class="mail-label">Personnel</span>
+              <a href="mailto:amaviviekouvo@gmail.com">amaviviekouvo@gmail.com</a>
+              <button type="button" class="copy" data-copy="amaviviekouvo@gmail.com" aria-label="Copier l'adresse e-mail personnelle">Copier</button>
+            </div>
+            <div class="mail">
+              <span class="mail-label">École</span>
+              <a href="mailto:ama-vivi.ekouvo@isen.yncrea.fr">ama-vivi.ekouvo@isen.yncrea.fr</a>
+              <button type="button" class="copy" data-copy="ama-vivi.ekouvo@isen.yncrea.fr" aria-label="Copier l'adresse e-mail de l'école">Copier</button>
+            </div>
+
+            <h3 class="sub2">Me retrouver</h3>
             <!-- TODO : remplacer par ton vrai lien LinkedIn -->
             <a class="link-row" href="https://www.linkedin.com/in/TODO-ton-profil" target="_blank" rel="noopener">
               <span>LinkedIn</span><span aria-hidden="true">↗</span>
@@ -337,11 +385,68 @@
   </main>
 
   <footer class="site-footer">
+    <div class="footer-mails">
+      <div class="mail">
+        <span class="mail-label">Personnel</span>
+        <a href="mailto:amaviviekouvo@gmail.com">amaviviekouvo@gmail.com</a>
+        <button type="button" class="copy" data-copy="amaviviekouvo@gmail.com" aria-label="Copier l'adresse e-mail personnelle">Copier</button>
+      </div>
+      <div class="mail">
+        <span class="mail-label">École</span>
+        <a href="mailto:ama-vivi.ekouvo@isen.yncrea.fr">ama-vivi.ekouvo@isen.yncrea.fr</a>
+        <button type="button" class="copy" data-copy="ama-vivi.ekouvo@isen.yncrea.fr" aria-label="Copier l'adresse e-mail de l'école">Copier</button>
+      </div>
+    </div>
     <p>© <span id="year"></span> Vivi EKOUVO AMA · Fait main en HTML / CSS / JS</p>
   </footer>
 
   <!-- Fond assombri derrière les panneaux (mode scène) -->
   <div id="backdrop" class="backdrop" hidden></div>
+
+  <!-- ============ SIGNALEMENT : bouton flottant + petite fenêtre ============ -->
+  <button type="button" id="report-open" class="report-open" aria-haspopup="dialog">🐞 Un souci ?</button>
+
+  <div id="report" class="report" role="dialog" aria-modal="true" aria-labelledby="t-report" hidden>
+    <div class="report-box">
+      <div class="titlebar">
+        <h2 id="t-report">Un souci ?</h2>
+        <button class="report-close" type="button" aria-label="Fermer la fenêtre de signalement">×</button>
+      </div>
+      <!-- Envoyé au même formulaire Formspree que le contact (l'adresse est reprise par script.js) -->
+      <form id="report-form" class="form report-form" method="POST" novalidate>
+        <label for="rep-cat">Catégorie</label>
+        <select id="rep-cat" name="categorie" required>
+          <option>Bug</option>
+          <option>Design</option>
+          <option>Contenu</option>
+          <option>Suggestion</option>
+        </select>
+
+        <label for="rep-msg">Message</label>
+        <textarea id="rep-msg" name="message" rows="4" required></textarea>
+
+        <label for="rep-mail">E-mail <span class="opt">(facultatif, pour une réponse)</span></label>
+        <input id="rep-mail" name="email" type="email" autocomplete="email">
+
+        <!-- Champs cachés : objet de l'e-mail, et page + appareil (remplis par script.js) -->
+        <input type="hidden" name="_subject" value="Retour sur le portfolio">
+        <input type="hidden" name="page_et_appareil" id="rep-context">
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp">
+
+        <button type="submit" class="btn btn-primary">Envoyer</button>
+        <p id="report-status" class="form-status" role="status" aria-live="polite"></p>
+
+        <div class="success" hidden>
+          <svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" focusable="false">
+            <circle class="ok-ring" cx="32" cy="32" r="28" pathLength="100"/>
+            <path class="ok-check" d="M19 33l9 9 17-20" pathLength="100"/>
+          </svg>
+          <h3 tabindex="-1">Merci pour ton retour !</h3>
+          <button type="button" class="btn btn-ghost report-done">Fermer</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

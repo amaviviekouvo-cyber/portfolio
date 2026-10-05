@@ -321,6 +321,7 @@
   /* ---------- 5. Panneaux (fenêtres rétro) ---------- */
   var backdrop = $('#backdrop');
   var openedPanel = null, opener = null;
+  var reportOpen = false;   // vrai quand la fenêtre « Un souci ? » est ouverte (elle passe devant les panneaux)
 
   function inScene() { return body.classList.contains('mode-scene'); }
 
@@ -352,7 +353,7 @@
   backdrop.addEventListener('click', function () { closePanel(); });
 
   document.addEventListener('keydown', function (e) {
-    if (!openedPanel) return;
+    if (!openedPanel || reportOpen) return;
     if (e.key === 'Escape') { closePanel(); return; }
     if (e.key === 'Tab') {       // le focus reste dans la fenêtre ouverte
       var f = $$('a[href], button:not([disabled]), input:not([tabindex="-1"]), textarea, summary, [tabindex="0"]', openedPanel)
@@ -542,44 +543,147 @@
   }
   loadRepos();
 
-  /* ---------- 9. Formulaire de contact (Formspree) ---------- */
-  var form = $('#contact-form');
-  var status = $('#form-status');
+  /* ---------- 9. Formspree : formulaire de contact, signalement, copie des e-mails ---------- */
+  // Une seule adresse Formspree pour tout le site (celle du formulaire de contact)
+  var FORM_ACTION = $('#contact-form').action;
 
-  function say(msg, type) {
-    status.textContent = msg;
-    status.className = 'form-status ' + type;
-  }
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    // Validation simple côté client
-    var ok = true;
-    $$('input[required], textarea[required]', form).forEach(function (f) {
-      var bad = !f.value.trim() || (f.type === 'email' && !/^\S+@\S+\.\S+$/.test(f.value));
-      f.classList.toggle('invalid', bad);
-      if (bad) ok = false;
-    });
-    if (!ok) { say('Merci de remplir correctement tous les champs.', 'err'); return; }
-
-    // Avertit si l'identifiant Formspree n'a pas encore été remplacé
-    if (form.action.indexOf('YOUR_FORM_ID') !== -1) {
-      say('Formulaire non configuré : remplace YOUR_FORM_ID dans index.html.', 'err');
-      return;
+  // Envoie un formulaire à Formspree. Promesse résolue si tout va bien, rejetée avec un message sinon.
+  function sendToFormspree(form) {
+    if (FORM_ACTION.indexOf('YOUR_FORM_ID') !== -1) {
+      return Promise.reject('Formulaire non configuré : remplace YOUR_FORM_ID dans index.html.');
     }
-
-    say('Envoi en cours…', 'ok');
-    fetch(form.action, {
+    return fetch(FORM_ACTION, {
       method: 'POST',
       body: new FormData(form),
       headers: { 'Accept': 'application/json' }
     }).then(function (r) {
-      if (r.ok) { say('Merci ! Ta carte a bien été envoyée.', 'ok'); form.reset(); }
-      else say('Une erreur est survenue. Réessaie ou contacte-moi via LinkedIn.', 'err');
-    }).catch(function () {
-      say('Connexion impossible. Réessaie dans un instant.', 'err');
+      if (!r.ok) return Promise.reject('Une erreur est survenue. Réessaie ou écris-moi directement par e-mail.');
+    }, function () {
+      return Promise.reject('Connexion impossible. Réessaie dans un instant.');
     });
+  }
+
+  // Validation simple côté client : champs obligatoires, e-mail et lien (si remplis) valides
+  function validate(form) {
+    var ok = true;
+    $$('input, textarea, select', form).forEach(function (f) {
+      if (f.type === 'hidden' || f.name === '_gotcha') return;
+      var v = f.value.trim(), bad = false;
+      if (f.required && !v) bad = true;
+      else if (v && f.type === 'email' && !/^\S+@\S+\.\S+$/.test(v)) bad = true;
+      else if (v && f.type === 'url') { var u = safeUrl(v); if (u) f.value = u; else bad = true; }
+      f.classList.toggle('invalid', bad);
+      if (bad) ok = false;
+    });
+    return ok;
+  }
+
+  // Affiche le message de succès animé à la place des champs
+  function showSuccess(form) {
+    var box = $('.success', form);
+    form.classList.add('sent');
+    box.hidden = false;
+    $('h3', box).focus();
+  }
+  function resetSuccess(form) {
+    form.classList.remove('sent');
+    $('.success', form).hidden = true;
+  }
+
+  // Branche un formulaire : validation, envoi, succès ou message d'erreur
+  function wireForm(form, statusEl, beforeSend) {
+    function say(msg, type) { statusEl.textContent = msg; statusEl.className = 'form-status ' + type; }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!validate(form)) { say('Merci de remplir correctement les champs signalés.', 'err'); return; }
+      if (beforeSend) beforeSend();
+      var btn = $('button[type="submit"]', form);
+      btn.disabled = true;
+      say('Envoi en cours…', 'ok');
+      sendToFormspree(form).then(function () {
+        say('', 'ok');
+        form.reset();
+        showSuccess(form);
+      }, function (msg) { say(msg, 'err'); }).then(function () { btn.disabled = false; });
+    });
+  }
+
+  // Formulaire de contact : l'objet de l'e-mail reprend le sujet choisi
+  var form = $('#contact-form');
+  wireForm(form, $('#form-status'), function () {
+    $('#mail-subject').value = 'Portfolio : ' + $('#subject').value;
+  });
+  $('#again').addEventListener('click', function () { resetSuccess(form); $('#name').focus(); });
+
+  // Copie d'une adresse e-mail dans le presse-papiers (avec solution de repli si l'API est indisponible)
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return false; });
+    return new Promise(function (resolve) {
+      var t = document.createElement('textarea');
+      t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { /* ignoré */ }
+      t.remove();
+      resolve(ok);
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.copy') : null;
+    if (!b) return;
+    copyText(b.getAttribute('data-copy')).then(function (ok) {
+      b.textContent = ok ? 'Copié !' : 'Copie impossible';
+      b.classList.add('done');
+      $('#live').textContent = ok ? 'Adresse copiée' : "Copie impossible, sélectionne l'adresse à la main";
+      clearTimeout(b._t);
+      b._t = setTimeout(function () { b.textContent = 'Copier'; b.classList.remove('done'); }, 2000);
+    });
+  });
+
+  /* Signalement : bouton flottant + fenêtre accessible au clavier */
+  var report = $('#report'), reportBtn = $('#report-open'), reportForm = $('#report-form');
+  var reportReturn = null;
+  reportForm.action = FORM_ACTION;
+
+  function openReport() {
+    reportReturn = document.activeElement;
+    resetSuccess(reportForm);
+    report.hidden = false;
+    reportOpen = true;
+    hideTip();
+    $('#rep-cat').focus();
+  }
+  function closeReport() {
+    report.hidden = true;
+    reportOpen = false;
+    if (reportReturn && reportReturn.focus) reportReturn.focus();
+  }
+  reportBtn.addEventListener('click', openReport);
+  $('.report-close', report).addEventListener('click', closeReport);
+  $('.report-done', report).addEventListener('click', closeReport);
+  report.addEventListener('click', function (e) { if (e.target === report) closeReport(); });   // clic sur le fond
+
+  document.addEventListener('keydown', function (e) {
+    if (!reportOpen) return;
+    if (e.key === 'Escape') { closeReport(); return; }
+    if (e.key === 'Tab') {       // le focus reste dans la fenêtre
+      var f = $$('a[href], button:not([disabled]), input:not([type="hidden"]):not([tabindex="-1"]), textarea, select, [tabindex="0"]', report)
+        .filter(function (n) { return n.offsetParent !== null; });
+      if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    }
+  });
+
+  // Avant l'envoi : renseigne le champ caché avec la page et l'appareil
+  wireForm(reportForm, $('#report-status'), function () {
+    var touch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    $('#rep-context').value =
+      'Page : ' + location.href.split('#')[0] +
+      ' | Mode : ' + (inScene() ? 'scène' : 'version rapide') +
+      ' | Thème : ' + document.documentElement.getAttribute('data-theme') +
+      ' | Écran : ' + window.innerWidth + 'x' + window.innerHeight + (touch ? ' (tactile)' : '') +
+      ' | Navigateur : ' + navigator.userAgent;
   });
 
   // Année du pied de page

@@ -407,7 +407,7 @@ body.mode-scene .site-footer { display: none; }
   background-size: 100% 6px; background-repeat: no-repeat; background-position: top;   /* liseré courrier aérien */
   padding-top: 1.8rem;
 }
-.postcard .form { padding-right: 1.6rem; border-right: 2px dashed var(--line); }
+.postcard .left { padding-right: 1.6rem; border-right: 2px dashed var(--line); }
 .postcard .address { padding-left: 1.6rem; padding-top: 4.5rem; }
 .postcard .dear { font-family: var(--font); font-weight: 700; font-size: 1.2rem; margin-bottom: .2rem; }
 .stamp { position: absolute; top: 1.7rem; right: 1.4rem; width: 54px; transform: rotate(3deg); image-rendering: pixelated; box-shadow: 2px 2px 0 rgba(0, 0, 0, .2); }
@@ -417,9 +417,9 @@ body.mode-scene .site-footer { display: none; }
 }
 .form { display: flex; flex-direction: column; gap: .35rem; }
 .form label { font-family: var(--font); font-size: .85rem; text-transform: uppercase; color: var(--ink-soft); margin-top: .5rem; }
-.form input, .form textarea { font: inherit; color: var(--ink); background: transparent; border: 0; border-bottom: 2px solid #1B2A4A; padding: .5rem .2rem; width: 100%; border-radius: 0; }
+.form input, .form textarea, .form select { font: inherit; color: var(--ink); background: transparent; border: 0; border-bottom: 2px solid #1B2A4A; padding: .5rem .2rem; width: 100%; border-radius: 0; }
 .form textarea { background: repeating-linear-gradient(transparent 0 1.6rem, #D8C9B6 1.6rem calc(1.6rem + 1px)); line-height: 1.7rem; border: 2px solid #1B2A4A; padding: .3rem .5rem; }
-.form input:focus, .form textarea:focus { outline: none; background-color: #FFFDF6; box-shadow: 0 0 0 3px rgba(232, 84, 122, .45); }
+.form input:focus, .form textarea:focus, .form select:focus { outline: none; background-color: #FFFDF6; box-shadow: 0 0 0 3px rgba(232, 84, 122, .45); }
 .form .invalid { border-color: #C42F2F; }
 .form .btn { margin-top: 1rem; align-self: flex-start; }
 .hp { position: absolute; left: -9999px; }
@@ -437,7 +437,7 @@ body.mode-scene .site-footer { display: none; }
   .about-grid { grid-template-columns: 1fr; }
   .portrait { justify-self: start; order: -1; width: clamp(150px, 42vw, 210px); }
   .postcard { grid-template-columns: 1fr; padding-top: 5.5rem; }
-  .postcard .form { padding-right: 0; border-right: 0; border-bottom: 2px dashed var(--line); padding-bottom: 1.4rem; }
+  .postcard .left { padding-right: 0; border-right: 0; border-bottom: 2px dashed var(--line); padding-bottom: 1.4rem; }
   .postcard .address { padding-left: 0; padding-top: 1.2rem; }
 
   /* Menu déroulant */
@@ -449,6 +449,78 @@ body.mode-scene .site-footer { display: none; }
 @media (max-width: 480px) {
   .btn { width: 100%; text-align: center; }
   .brand-name { font-size: 1.05rem; }
+}
+
+/* ---------- 9 bis. Photo du menu, e-mails, succès animé, signalement ---------- */
+
+/* Photo de profil du menu : petit rond de 40 px, fine bordure rose framboise */
+.brand-photo { width: 40px; height: 40px; flex: none; border-radius: 50%; object-fit: cover; border: 2px solid #E8547A; background: var(--bg-card); }
+
+/* Menus déroulants et petits textes des formulaires */
+.form select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 1.6rem; border-radius: 0;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23C42F5B' stroke-width='2'/%3E%3C/svg%3E") no-repeat right .3rem center; }
+.form .opt { text-transform: none; font-weight: 400; }
+.hint2, .note { font-size: .85rem; color: var(--ink-soft); margin: .6rem 0 0; }
+.alt-file { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 2px dashed var(--line); }
+.sub2 { margin-top: 1.4rem; }
+
+/* Adresses e-mail cliquables + bouton « Copier » */
+.mail { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; margin-bottom: .7rem; }
+.mail-label { font-family: var(--pixel); font-size: .8rem; text-transform: uppercase; color: var(--ink-soft); min-width: 5.2rem; }
+.mail a { color: var(--accent-strong); font-weight: 600; word-break: break-all; }
+.copy {
+  font: 600 .8rem var(--font); padding: .2rem .7rem; cursor: pointer; color: var(--ink); background: var(--bg-card);
+  border: 2px solid var(--frame); transition: background .15s, color .15s, transform .15s;
+}
+.copy:hover { background: var(--soft); transform: translateY(-1px); }
+.copy.done { background: var(--btn-bg); color: var(--btn-fg); }
+.footer-mails { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem 2rem; margin-bottom: 1rem; }
+.footer-mails .mail { margin: 0; }
+.site-footer { padding-bottom: 5rem; }   /* laisse la place au bouton flottant */
+
+/* Message de succès animé : cercle et coche qui se dessinent, confettis qui montent */
+.form.sent > :not(.success) { display: none; }
+.success { position: relative; text-align: center; padding: 1.2rem 0; animation: pop-in .4s ease-out; }
+.success h3 { margin: .6rem 0 .3rem; outline: none; }
+.success svg { overflow: visible; }
+.ok-ring, .ok-check { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 100; }
+.ok-ring { stroke: #14A3A0; animation: draw .7s ease-out both; }
+.ok-check { stroke: #E8547A; animation: draw .5s .55s ease-out both; }
+@keyframes draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes pop-in { from { opacity: 0; transform: scale(.9); } }
+.confetti { position: absolute; left: 50%; top: 2.6rem; width: 0; height: 0; }
+.confetti i { position: absolute; width: 8px; height: 8px; background: #E8547A; opacity: 0; animation: confetti 1.4s .6s ease-out both; }
+.confetti i:nth-child(2n) { background: #14A3A0; }
+.confetti i:nth-child(3n) { background: #F7D6DF; }
+.confetti i:nth-child(1) { --x: -70px; --y: -50px; } .confetti i:nth-child(2) { --x: -40px; --y: -80px; }
+.confetti i:nth-child(3) { --x: 0px; --y: -90px; }   .confetti i:nth-child(4) { --x: 40px; --y: -80px; }
+.confetti i:nth-child(5) { --x: 70px; --y: -50px; }  .confetti i:nth-child(6) { --x: 20px; --y: -60px; }
+@keyframes confetti { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(180deg); } }
+
+/* Signalement : bouton flottant discret en bas à droite */
+.report-open {
+  position: fixed; z-index: 80; right: 14px; bottom: 14px; font: 600 .85rem var(--font); cursor: pointer;
+  padding: .45rem .9rem; color: var(--ink); background: var(--bg-card); border: 2px solid var(--frame);
+  box-shadow: 3px 3px 0 var(--frame); opacity: .9; transition: transform .15s, box-shadow .15s, opacity .15s, background .15s;
+}
+.report-open:hover, .report-open:focus-visible { opacity: 1; background: var(--soft); transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--frame); }
+
+/* Fenêtre de signalement (au-dessus de tout, y compris des panneaux) */
+.report { position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 1rem; background: rgba(8, 12, 30, .6); }
+.report-box { width: min(440px, 100%); max-height: 92dvh; overflow-y: auto; background: var(--bg-card); border: 3px solid var(--frame); box-shadow: 6px 6px 0 rgba(0, 0, 0, .35); animation: pop-in .25s ease-out; }
+.report-close { width: 32px; height: 32px; font: 700 1.3rem/1 var(--pixel); cursor: pointer; background: var(--bg-card); color: var(--ink); border: 2px solid var(--frame); }
+.report-close:hover { background: var(--soft); }
+.report-form { padding: 1.1rem 1.2rem 1.4rem; }
+.report-form input, .report-form textarea, .report-form select { border-color: var(--frame); }
+.report-form textarea { background: transparent; line-height: 1.5; }
+.report-form input:focus, .report-form textarea:focus, .report-form select:focus { background-color: transparent; }
+.report-form .invalid { border-color: #E5484D; }
+
+@media (max-width: 480px) {
+  .report-open { right: 10px; bottom: 10px; }
+  .report { align-items: end; padding: 0; }          /* sur mobile : la fenêtre se pose en bas de l'écran */
+  .report-box { width: 100%; max-height: 90dvh; border-left: 0; border-right: 0; border-bottom: 0; }
+  .mail-label { min-width: 100%; }
 }
 
 /* ---------- 10. Accessibilité : animations réduites ---------- */
