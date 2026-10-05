@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vivi EKOUVO AMA — Ingénieure e-santé</title>
+  <meta name="description" content="Portfolio de Vivi EKOUVO AMA, élève ingénieure e-santé à l'ISEN Toulon, en recherche d'un stage de 3 mois à partir de juillet 2027.">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- Application du thème mémorisé AVANT le rendu pour éviter un flash blanc -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <!-- Courbe de signal (ECG/IMU) : le tracé est généré et animé par script.js -->
+  <svg id="signal" aria-hidden="true" focusable="false">
+    <path id="signal-ghost" class="signal-ghost" d=""></path>
+    <path id="signal-line" class="signal-line" d=""></path>
+  </svg>
+
+  <!-- ============ EN-TÊTE / NAVIGATION ============ -->
+  <header class="site-header">
+    <a class="brand" href="#hero" aria-label="Accueil">
+      <span class="brand-dot"></span> V.E.A <span class="brand-sub">/ lab notebook</span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Ouvrir le menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav id="nav" class="nav">
+      <a href="#apropos">À propos</a>
+      <a href="#projets">Projets</a>
+      <a href="#competences">Compétences</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <button class="theme-toggle" id="theme-toggle" aria-label="Basculer le mode sombre / clair" title="Mode sombre / clair">
+      <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>
+    </button>
+  </header>
+
+  <main id="main">
+
+    <!-- ============ HERO ============ -->
+    <section id="hero" class="hero">
+      <p class="entry-label reveal">Entrée n°00 · Page de garde</p>
+      <h1 class="reveal">
+        Ingénieure e-santé : je transforme des <span class="hl">capteurs</span> en outils pour les <span class="hl">soignants</span>.
+      </h1>
+      <p class="lead reveal">
+        Vivi EKOUVO AMA — élève ingénieure en 4<sup>e</sup> année à l'ISEN Toulon (option e-santé),
+        issue d'un parcours en biologie. Je cherche un <strong>stage d'ingénieur de 3 mois à partir de juillet 2027</strong>.
+      </p>
+      <div class="cta reveal">
+        <a class="btn btn-primary" href="#projets">Voir mes projets</a>
+        <a class="btn btn-ghost" href="cv.pdf" download>Télécharger mon CV</a>
+      </div>
+      <ul class="tags reveal" aria-label="Mots-clés">
+        <li>IMU</li><li>Bluetooth</li><li>Embarqué</li><li>Biologie</li><li>Dashboard</li>
+      </ul>
+    </section>
+
+    <!-- ============ À PROPOS ============ -->
+    <section id="apropos" class="section">
+      <p class="entry-label reveal">Entrée n°01 · Observations</p>
+      <h2 class="reveal">À propos</h2>
+      <div class="about-grid">
+        <div class="reveal">
+          <p>
+            Je suis à la croisée de deux mondes : celui du <strong>vivant</strong>, que j'ai étudié en biologie,
+            et celui de l'<strong>ingénierie</strong>, que j'apprends à l'ISEN Toulon. L'e-santé est l'endroit
+            où ces deux mondes se parlent : mesurer un corps avec un capteur, c'est déjà commencer à le comprendre.
+          </p>
+          <p>
+            J'aime les projets concrets où un signal brut — accélération, pression, tension — devient une information
+            lisible par un thérapeute ou un soignant. Mon réflexe : partir du besoin clinique, puis choisir la technique.
+          </p>
+        </div>
+        <aside class="note-card reveal" aria-label="Fiche rapide">
+          <h3>Fiche rapide</h3>
+          <dl>
+            <dt>Formation</dt><dd>Cycle ingénieur, 4<sup>e</sup> année — ISEN Toulon</dd>
+            <dt>Option</dt><dd>E-santé</dd>
+            <dt>Parcours antérieur</dt><dd>Biologie</dd>
+            <dt>Recherche</dt><dd>Stage ingénieur · 3 mois · juillet 2027</dd>
+            <dt>Langues</dt><dd>Français, anglais</dd>
+          </dl>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ PROJETS ============ -->
+    <section id="projets" class="section">
+      <p class="entry-label reveal">Entrée n°02 · Expériences</p>
+      <h2 class="reveal">Projets</h2>
+      <p class="section-intro reveal">Clique sur une carte pour ouvrir l'étude de cas.</p>
+
+      <div class="cards">
+
+        <!-- Projet phare -->
+        <article class="card card-featured reveal" tabindex="0" role="button" data-modal="modal-hippo" aria-haspopup="dialog">
+          <span class="badge">Projet phare · Cheffe de projet</span>
+          <h3>Sensor-based monitoring for post-injury hippotherapy</h3>
+          <p>
+            Capteurs IMU sur le patient et sur le cheval, tapis de pression, transmission Bluetooth vers une tablette
+            et dashboard pour le thérapeute.
+          </p>
+          <ul class="tags small"><li>IMU</li><li>Tapis de pression</li><li>Bluetooth</li><li>Dashboard</li></ul>
+          <span class="more">Lire l'étude de cas →</span>
+        </article>
+
+        <!-- TODO : modifier le titre, la description et la modale de ce projet -->
+        <article class="card reveal" tabindex="0" role="button" data-modal="modal-p2" aria-haspopup="dialog">
+          <span class="badge badge-soft">Projet 02</span>
+          <h3>Titre du projet 2</h3>
+          <p>Courte description du projet : contexte, technologies utilisées et ton rôle.</p>
+          <ul class="tags small"><li>Techno A</li><li>Techno B</li></ul>
+          <span class="more">Lire l'étude de cas →</span>
+        </article>
+
+        <!-- TODO : modifier le titre, la description et la modale de ce projet -->
+        <article class="card reveal" tabindex="0" role="button" data-modal="modal-p3" aria-haspopup="dialog">
+          <span class="badge badge-soft">Projet 03</span>
+          <h3>Titre du projet 3</h3>
+          <p>Courte description du projet : contexte, technologies utilisées et ton rôle.</p>
+          <ul class="tags small"><li>Techno C</li><li>Techno D</li></ul>
+          <span class="more">Lire l'étude de cas →</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ============ COMPÉTENCES ============ -->
+    <section id="competences" class="section">
+      <p class="entry-label reveal">Entrée n°03 · Matériel &amp; méthodes</p>
+      <h2 class="reveal">Compétences</h2>
+
+      <!-- Filtres : chaque bouton cible une catégorie (data-filter) -->
+      <div class="filters reveal" role="group" aria-label="Filtrer les compétences">
+        <button class="chip is-active" data-filter="all" aria-pressed="true">Tout</button>
+        <button class="chip" data-filter="embarque" aria-pressed="false">Embarqué</button>
+        <button class="chip" data-filter="logiciel" aria-pressed="false">Logiciel</button>
+        <button class="chip" data-filter="reseaux" aria-pressed="false">Réseaux</button>
+        <button class="chip" data-filter="methodes" aria-pressed="false">Méthodes</button>
+        <button class="chip" data-filter="langues" aria-pressed="false">Langues</button>
+      </div>
+
+      <div class="skills" id="skills">
+        <div class="skill-group" data-cat="embarque">
+          <h3>Embarqué</h3>
+          <ul><li>C</li><li>VHDL</li><li>Électronique analogique</li><li>LTSpice</li><li>Arduino / STM32</li></ul>
+        </div>
+        <div class="skill-group" data-cat="logiciel">
+          <h3>Logiciel</h3>
+          <ul><li>Python</li><li>Java</li><li>JavaScript</li><li>PHP</li><li>HTML/CSS</li><li>Git</li><li>Linux</li></ul>
+        </div>
+        <div class="skill-group" data-cat="reseaux">
+          <h3>Réseaux</h3>
+          <ul><li>Cisco</li></ul>
+        </div>
+        <div class="skill-group" data-cat="methodes">
+          <h3>Méthodes</h3>
+          <ul><li>Agile</li><li>Gestion de projet</li></ul>
+        </div>
+        <div class="skill-group" data-cat="langues">
+          <h3>Langues</h3>
+          <ul><li>Français</li><li>Anglais</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section id="contact" class="section">
+      <p class="entry-label reveal">Entrée n°04 · Conclusion</p>
+      <h2 class="reveal">Contact</h2>
+      <p class="section-intro reveal">Un stage, une question, une idée de projet ? Écris-moi.</p>
+
+      <div class="contact-grid">
+        <!-- TODO : remplacer YOUR_FORM_ID par l'identifiant de ton formulaire Formspree (https://formspree.io) -->
+        <form id="contact-form" class="form reveal" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate>
+          <label for="name">Nom</label>
+          <input id="name" name="name" type="text" autocomplete="name" required>
+
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="5" required></textarea>
+
+          <!-- Champ piège anti-spam : invisible pour les humains -->
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp">
+
+          <button type="submit" class="btn btn-primary">Envoyer le message</button>
+          <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="links reveal">
+          <h3>Me retrouver</h3>
+          <!-- TODO : remplacer par ton vrai lien LinkedIn -->
+          <a class="link-row" href="https://www.linkedin.com/in/TODO-ton-profil" target="_blank" rel="noopener">
+            <span>LinkedIn</span><span aria-hidden="true">↗</span>
+          </a>
+          <!-- TODO : remplacer par ton vrai lien GitHub -->
+          <a class="link-row" href="https://github.com/TODO-ton-pseudo" target="_blank" rel="noopener">
+            <span>GitHub</span><span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span id="year"></span> Vivi EKOUVO AMA · Fait main en HTML / CSS / JS</p>
+  </footer>
+
+  <!-- ============ MODALES « ÉTUDE DE CAS » ============ -->
+  <div class="modal" id="modal-hippo" role="dialog" aria-modal="true" aria-labelledby="t-hippo" hidden>
+    <div class="modal-box">
+      <button class="modal-close" aria-label="Fermer">×</button>
+      <p class="entry-label">Étude de cas · Projet phare</p>
+      <h3 id="t-hippo">Sensor-based monitoring for post-injury hippotherapy</h3>
+      <p class="role">Rôle : cheffe de projet</p>
+
+      <h4>Problème</h4>
+      <p>
+        En hippothérapie après une blessure, le thérapeute évalue la posture et la progression du patient
+        surtout à l'œil. Il manque des mesures objectives et continues pour suivre la symétrie du bassin,
+        la régularité de la marche et la fatigue pendant la séance.
+      </p>
+
+      <h4>Approche</h4>
+      <p>
+        Le système associe des <strong>capteurs IMU</strong> placés sur le patient et sur le cheval à un
+        <strong>tapis de pression</strong>. Les données sont transmises en <strong>Bluetooth</strong> à une tablette,
+        où un dashboard dédié au thérapeute les met en forme. J'ai coordonné l'équipe, la répartition des tâches
+        et les échéances du projet.
+      </p>
+
+      <h4>Résultat</h4>
+      <ul>
+        <li><strong>Symétrie pelvienne</strong> du patient visualisée en temps réel.</li>
+        <li><strong>Régularité de la foulée</strong> suivie au fil de la séance.</li>
+        <li><strong>Alerte de fatigue</strong> pour aider le thérapeute à adapter la séance.</li>
+      </ul>
+      <!-- TODO : ajouter des chiffres, captures ou un lien vers le rapport si disponibles -->
+    </div>
+  </div>
+
+  <!-- TODO : compléter l'étude de cas du projet 2 -->
+  <div class="modal" id="modal-p2" role="dialog" aria-modal="true" aria-labelledby="t-p2" hidden>
+    <div class="modal-box">
+      <button class="modal-close" aria-label="Fermer">×</button>
+      <p class="entry-label">Étude de cas · Projet 02</p>
+      <h3 id="t-p2">Titre du projet 2</h3>
+      <h4>Problème</h4><p>Décris le problème à résoudre.</p>
+      <h4>Approche</h4><p>Décris la méthode et les outils utilisés.</p>
+      <h4>Résultat</h4><p>Décris ce qui a été obtenu.</p>
+    </div>
+  </div>
+
+  <!-- TODO : compléter l'étude de cas du projet 3 -->
+  <div class="modal" id="modal-p3" role="dialog" aria-modal="true" aria-labelledby="t-p3" hidden>
+    <div class="modal-box">
+      <button class="modal-close" aria-label="Fermer">×</button>
+      <p class="entry-label">Étude de cas · Projet 03</p>
+      <h3 id="t-p3">Titre du projet 3</h3>
+      <h4>Problème</h4><p>Décris le problème à résoudre.</p>
+      <h4>Approche</h4><p>Décris la méthode et les outils utilisés.</p>
+      <h4>Résultat</h4><p>Décris ce qui a été obtenu.</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
