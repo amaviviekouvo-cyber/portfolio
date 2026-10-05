@@ -543,32 +543,29 @@
   }
   loadRepos();
 
-  /* ---------- 9. Formspree : formulaire de contact, signalement, copie des e-mails ---------- */
-  // Une seule adresse Formspree pour tout le site (celle du formulaire de contact)
+  /* ---------- 9. Envoi des formulaires (FormSubmit) : formulaire de contact, signalement, copie des e-mails ---------- */
+  // Une seule adresse d'envoi pour tout le site (celle du formulaire de contact, qui livre dans la boîte Gmail)
   var FORM_ACTION = $('#contact-form').action;
 
-  // Envoie un formulaire à Formspree. Promesse résolue si tout va bien, rejetée avec un message sinon.
-  function sendToFormspree(form) {
-    // Aide au débogage : prévient dans la console si l'identifiant est encore un texte à remplacer
-    if (/MON-ID|YOUR_FORM_ID/.test(FORM_ACTION)) {
-      console.warn('[Formspree] L\'identifiant n\'est pas un vrai identifiant (' + FORM_ACTION + '). ' +
-        'Crée un formulaire sur formspree.io et colle son identifiant dans l\'attribut action de #contact-form (index.html).');
-    }
+  // Envoie un formulaire à FormSubmit. Promesse résolue si tout va bien, rejetée avec un message sinon.
+  function sendForm(form) {
     return fetch(FORM_ACTION, {
       method: 'POST',
       body: new FormData(form),
       headers: { 'Accept': 'application/json' }
     }).then(function (r) {
-      // On lit toujours la réponse pour afficher dans la console le statut et le message exacts de Formspree
+      // On lit toujours la réponse pour afficher dans la console le statut et le message exacts du service
       return r.text().then(function (txt) {
         var body;
         try { body = JSON.parse(txt); } catch (e) { body = txt; }
-        if (r.ok) { console.info('[Formspree] Envoi réussi', r.status, body); return; }
-        console.error('[Formspree] Échec : statut ' + r.status + ' | URL : ' + FORM_ACTION + ' | réponse : ' + (typeof body === 'string' ? body : JSON.stringify(body)));
+        // FormSubmit répond parfois 200 avec { success: "false", message: ... } : on traite ce cas comme un échec
+        var refused = body && typeof body === 'object' && String(body.success) === 'false';
+        if (r.ok && !refused) { console.info('[Envoi] Réussi', r.status, body); return; }
+        console.error('[Envoi] Échec : statut ' + r.status + ' | URL : ' + FORM_ACTION + ' | réponse : ' + (typeof body === 'string' ? body : JSON.stringify(body)));
         return Promise.reject('Une erreur est survenue (code ' + r.status + '). Réessaie ou écris-moi directement par e-mail.');
       });
     }, function (err) {
-      console.error('[Formspree] Échec réseau (aucune réponse du serveur) :', err);
+      console.error('[Envoi] Échec réseau (aucune réponse du serveur) :', err);
       return Promise.reject('Connexion impossible. Réessaie dans un instant.');
     });
   }
@@ -577,7 +574,7 @@
   function validate(form) {
     var ok = true;
     $$('input, textarea, select', form).forEach(function (f) {
-      if (f.type === 'hidden' || f.name === '_gotcha') return;
+      if (f.type === 'hidden' || f.name === '_honey') return;
       var v = f.value.trim(), bad = false;
       if (f.required && !v) bad = true;
       else if (v && f.type === 'email' && !/^\S+@\S+\.\S+$/.test(v)) bad = true;
@@ -610,7 +607,7 @@
       var btn = $('button[type="submit"]', form);
       btn.disabled = true;
       say('Envoi en cours…', 'ok');
-      sendToFormspree(form).then(function () {
+      sendForm(form).then(function () {
         say('', 'ok');
         form.reset();
         showSuccess(form);

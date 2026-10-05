@@ -299,9 +299,11 @@
           <div class="postmark" aria-hidden="true">TOULON<br>2027</div>
 
           <div class="left">
-            <!-- Identifiant Formspree (https://formspree.io) : les messages arrivent sur amaviviekouvo@gmail.com.
-                 Ce même identifiant sert aussi à la fenêtre « Un souci ? » (il est lu ici par script.js). -->
-            <form id="contact-form" class="form" action="https://formspree.io/f/MON-ID" method="POST" novalidate>
+            <!-- Envoi via FormSubmit (https://formsubmit.co), sans compte : les messages arrivent directement sur
+                 amaviviekouvo@gmail.com. Au tout premier envoi, FormSubmit envoie un e-mail d'activation à cette
+                 adresse : clique sur le lien, puis tous les messages suivants arrivent normalement.
+                 Cette même adresse sert aussi à la fenêtre « Un souci ? » (elle est lue ici par script.js). -->
+            <form id="contact-form" class="form" action="https://formsubmit.co/ajax/amaviviekouvo@gmail.com" method="POST" novalidate>
               <p class="dear">Chère Vivi,</p>
               <label for="name">Nom</label>
               <input id="name" name="name" type="text" autocomplete="name" required>
@@ -325,8 +327,10 @@
 
               <!-- Objet de l'e-mail reçu : complété par script.js avec le sujet choisi -->
               <input type="hidden" name="_subject" id="mail-subject" value="Message depuis le portfolio">
-              <!-- Champ piège anti-spam : invisible pour les humains -->
-              <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp">
+              <input type="hidden" name="_captcha" value="false">
+              <input type="hidden" name="_template" value="table">
+              <!-- Champ piège anti-spam (nom attendu par FormSubmit) : invisible pour les humains -->
+              <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="hp">
 
               <button type="submit" class="btn btn-primary">Envoyer la carte</button>
               <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
@@ -395,7 +399,7 @@
         <button type="button" class="copy" data-copy="ama-vivi.ekouvo@isen.yncrea.fr" aria-label="Copier l'adresse e-mail de l'école">Copier</button>
       </div>
     </div>
-    <p>© <span id="year"></span> Vivi EKOUVO AMA · Fait main en HTML / CSS / JS</p>
+    <p>© <span id="year"></span> Vivi EKOUVO AMA </p>
   </footer>
 
   <!-- Fond assombri derrière les panneaux (mode scène) -->
@@ -410,7 +414,7 @@
         <h2 id="t-report">Un souci ?</h2>
         <button class="report-close" type="button" aria-label="Fermer la fenêtre de signalement">×</button>
       </div>
-      <!-- Envoyé au même formulaire Formspree que le contact (l'adresse est reprise par script.js) -->
+      <!-- Envoyé au même service (FormSubmit) et à la même adresse que le contact (l'adresse est reprise par script.js) -->
       <form id="report-form" class="form report-form" method="POST" novalidate>
         <label for="rep-cat">Catégorie</label>
         <select id="rep-cat" name="categorie" required>
@@ -428,8 +432,10 @@
 
         <!-- Champs cachés : objet de l'e-mail, et page + appareil (remplis par script.js) -->
         <input type="hidden" name="_subject" value="Retour sur le portfolio">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
         <input type="hidden" name="page_et_appareil" id="rep-context">
-        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp">
+        <input type="text" name="_honey" tabindex="-1" autocomplete="off" class="hp">
 
         <button type="submit" class="btn btn-primary">Envoyer</button>
         <p id="report-status" class="form-status" role="status" aria-live="polite"></p>
