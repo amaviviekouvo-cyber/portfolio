@@ -45,6 +45,7 @@
   --soft: #F7D6DF;                /* rose poudré : badges, surbrillances */
   --g1: #E8547A;                  /* dégradé de « e-santé » : rose → violet */
   --g2: #8E5BD9;
+  --g3: #0E8582;                  /* début du dégradé de « électronique » : turquoise foncé (4:1 sur le fond) */
   --selection: #F4A9BF;
   --line: #E3DAD6;
   --frame: #1B2A4A;               /* contour des fenêtres rétro */
@@ -77,6 +78,7 @@
   --soft: rgba(255, 122, 156, .18);
   --g1: #FF7A9C;
   --g2: #B79CFF;
+  --g3: #2EE0D6;
   --selection: #FF7A9C;
   --line: #27355A;
   --frame: #6F82B5;
@@ -122,7 +124,9 @@ strong, b { font-weight: 500; color: var(--ink); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Dégradé rose → violet sur « e-santé » */
-.grad { background: linear-gradient(90deg, var(--g1), var(--g2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.grad, .grad-eco { -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.grad { background-image: linear-gradient(90deg, var(--g1), var(--g2)); }        /* rose → violet */
+.grad-eco { background-image: linear-gradient(90deg, var(--g3), var(--g1)); }    /* turquoise → rose */
 /* Surlignage rose poudré */
 .hl { background: linear-gradient(transparent 62%, var(--soft) 62%); padding: 0 .1em; }
 
@@ -289,13 +293,13 @@ body.mode-quick .hero-card { max-width: 1000px; margin: 0 auto; padding: clamp(2
 
 /* Scène : carte compacte en bas à gauche, sur la paillasse */
 body.mode-scene .hero-card {
-  position: fixed; z-index: 40; left: 14px; bottom: 14px; width: min(340px, 36vw);
+  position: fixed; z-index: 40; left: 14px; bottom: 14px; width: min(400px, 40vw);
   background: var(--bg-card); border: 3px solid var(--frame); box-shadow: var(--shadow); padding: .8rem 1rem;
 }
-body.mode-scene .hero-card h1 { font-size: 1.05rem; margin-bottom: .5rem; }
+body.mode-scene .hero-card h1 { font-size: 1.3rem; margin-bottom: .5rem; }
 body.mode-scene .hero-card .name { font-size: .8rem; margin: 0; }
-body.mode-scene .hero-card .lead { display: none; }
-body.mode-scene .hero-card .hint { display: block; }
+body.mode-scene .hero-card .lead { font-size: .8rem; line-height: 1.45; margin: 0 0 .7rem; }
+body.mode-scene .hero-card .hint { display: none; }
 body.mode-scene .hero-card .btn { padding: .3rem .6rem; font-size: .8rem; box-shadow: 2px 2px 0 var(--frame); }
 body.mode-scene .hero-card .cta { flex-wrap: nowrap; gap: .5rem; }
 body.mode-scene .hero-card .hint { font-size: .78rem; margin-top: .5rem; }

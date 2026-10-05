@@ -549,13 +549,26 @@
 
   // Envoie un formulaire à Formspree. Promesse résolue si tout va bien, rejetée avec un message sinon.
   function sendToFormspree(form) {
+    // Aide au débogage : prévient dans la console si l'identifiant est encore un texte à remplacer
+    if (/MON-ID|YOUR_FORM_ID/.test(FORM_ACTION)) {
+      console.warn('[Formspree] L\'identifiant n\'est pas un vrai identifiant (' + FORM_ACTION + '). ' +
+        'Crée un formulaire sur formspree.io et colle son identifiant dans l\'attribut action de #contact-form (index.html).');
+    }
     return fetch(FORM_ACTION, {
       method: 'POST',
       body: new FormData(form),
       headers: { 'Accept': 'application/json' }
     }).then(function (r) {
-      if (!r.ok) return Promise.reject('Une erreur est survenue. Réessaie ou écris-moi directement par e-mail.');
-    }, function () {
+      // On lit toujours la réponse pour afficher dans la console le statut et le message exacts de Formspree
+      return r.text().then(function (txt) {
+        var body;
+        try { body = JSON.parse(txt); } catch (e) { body = txt; }
+        if (r.ok) { console.info('[Formspree] Envoi réussi', r.status, body); return; }
+        console.error('[Formspree] Échec : statut ' + r.status + ' | URL : ' + FORM_ACTION + ' | réponse : ' + (typeof body === 'string' ? body : JSON.stringify(body)));
+        return Promise.reject('Une erreur est survenue (code ' + r.status + '). Réessaie ou écris-moi directement par e-mail.');
+      });
+    }, function (err) {
+      console.error('[Formspree] Échec réseau (aucune réponse du serveur) :', err);
       return Promise.reject('Connexion impossible. Réessaie dans un instant.');
     });
   }
