@@ -549,9 +549,6 @@
 
   // Envoie un formulaire à Formspree. Promesse résolue si tout va bien, rejetée avec un message sinon.
   function sendToFormspree(form) {
-    if (FORM_ACTION.indexOf('YOUR_FORM_ID') !== -1) {
-      return Promise.reject('Formulaire non configuré : remplace YOUR_FORM_ID dans index.html.');
-    }
     return fetch(FORM_ACTION, {
       method: 'POST',
       body: new FormData(form),
