@@ -562,7 +562,12 @@
         var refused = body && typeof body === 'object' && String(body.success) === 'false';
         if (r.ok && !refused) { console.info('[Envoi] Réussi', r.status, body); return; }
         console.error('[Envoi] Échec : statut ' + r.status + ' | URL : ' + FORM_ACTION + ' | réponse : ' + (typeof body === 'string' ? body : JSON.stringify(body)));
-        return Promise.reject('Une erreur est survenue (code ' + r.status + '). Réessaie ou écris-moi directement par e-mail.');
+        // Message affiché : si le service refuse l'envoi (code 200 mais « success: false »), on reprend sa raison
+        var raison = refused && body.message ? String(body.message) : '';
+        if (/activat/i.test(raison)) {
+          return Promise.reject("Presque ! Un e-mail d'activation vient d'être envoyé à la boîte de Vivi : une fois le lien cliqué, les messages arriveront. Réessaie ensuite.");
+        }
+        return Promise.reject('Envoi refusé' + (raison ? ' (' + raison + ')' : ' (code ' + r.status + ')') + '. Réessaie ou écris-moi directement par e-mail.');
       });
     }, function (err) {
       console.error('[Envoi] Échec réseau (aucune réponse du serveur) :', err);
