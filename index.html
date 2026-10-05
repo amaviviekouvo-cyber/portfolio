@@ -3,261 +3,334 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vivi EKOUVO AMA — Ingénieure e-santé</title>
+  <title>Vivi's Lab | Vivi EKOUVO AMA, ingénieure e-santé</title>
   <meta name="description" content="Portfolio de Vivi EKOUVO AMA, élève ingénieure e-santé à l'ISEN Toulon, en recherche d'un stage de 3 mois à partir de juillet 2027.">
   <meta name="color-scheme" content="light dark">
 
-  <!-- Thème mémorisé appliqué AVANT le rendu pour éviter un flash blanc -->
+  <!-- Polices : Pixelify Sans (titres) et Inter (textes longs). Des polices de secours sont prévues dans le CSS. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Pixelify+Sans:wght@500;700&display=swap">
+
+  <!-- Thème mémorisé appliqué AVANT le rendu (mode sombre = nuit, mode clair = jour) -->
   <script>
     (function () {
       try {
         var t = localStorage.getItem('theme');
         if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', t);
-      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
     })();
   </script>
 
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
 
-  <a class="skip" href="#main">Aller au contenu</a>
+<!-- Sans JavaScript, la « version rapide » (sections classiques) s'affiche : c'est le mode par défaut.
+     script.js ajoute la classe mode-scene quand la scène peut être affichée. -->
+<body class="mode-quick">
 
-  <!-- Bibliothèque d'icônes SVG (réutilisées avec <use>) : e-santé et embarqué -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-    <defs>
-      <symbol id="i-heart" viewBox="0 0 48 48"><path d="M24 42C10 31 5 23 5 16.5A9.5 9.5 0 0 1 24 13a9.5 9.5 0 0 1 19 3.5C43 23 38 31 24 42z"/></symbol>
-      <symbol id="i-ecg" viewBox="0 0 48 48"><path d="M2 26h10l5-12 6 24 6-30 5 18h12"/></symbol>
-      <symbol id="i-chip" viewBox="0 0 48 48"><rect x="12" y="12" width="24" height="24" rx="3"/><rect x="19" y="19" width="10" height="10" rx="1"/><path d="M18 12V5M24 12V5M30 12V5M18 36v7M24 36v7M30 36v7M12 18H5M12 24H5M12 30H5M36 18h7M36 24h7M36 30h7"/></symbol>
-      <symbol id="i-sensor" viewBox="0 0 48 48"><circle cx="24" cy="24" r="4"/><path d="M15 15a13 13 0 0 0 0 18M33 15a13 13 0 0 1 0 18M9 9a21 21 0 0 0 0 30M39 9a21 21 0 0 1 0 30"/></symbol>
-      <symbol id="i-steth" viewBox="0 0 48 48"><path d="M12 5v11a8 8 0 0 0 16 0V5M12 5H9M28 5h3M20 24v6a8 8 0 0 0 16 0v-3"/><circle cx="36" cy="23" r="4"/></symbol>
-      <symbol id="i-dna" viewBox="0 0 48 48"><path d="M16 3c0 10 16 11 16 21S16 35 16 45M32 3c0 10-16 11-16 21s16 11 16 21M19 10h10M17 17h14M17 31h14M19 38h10"/></symbol>
-      <symbol id="i-bt" viewBox="0 0 48 48"><path d="M13 17l21 15-10 8V8l10 8-21 15"/></symbol>
-      <symbol id="i-board" viewBox="0 0 48 48"><rect x="5" y="9" width="38" height="30" rx="3"/><path d="M11 17h10v8h9M11 31h9M30 17h7"/><circle cx="30" cy="25" r="2"/><circle cx="20" cy="31" r="2"/><circle cx="37" cy="17" r="2"/></symbol>
-    </defs>
-  </svg>
+  <a class="skip" href="#contenu">Aller au contenu</a>
 
-  <!-- Courbe ECG qui se dessine au scroll (tracé généré par script.js) -->
-  <svg id="signal" aria-hidden="true" focusable="false">
-    <!-- Dégradé turquoise → rose le long de la page (y2 ajusté par script.js) -->
-    <defs>
-      <linearGradient id="sig-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="3000">
-        <stop offset="0"/><stop offset="1"/>
-      </linearGradient>
-    </defs>
-    <path id="signal-ghost" class="signal-ghost" d=""></path>
-    <path id="signal-line" class="signal-line" d=""></path>
-  </svg>
-
-  <!-- ============ EN-TÊTE ============ -->
+  <!-- ============ MENU FIXE ============ -->
   <header class="site-header">
-    <a class="brand" href="#hero" aria-label="Accueil">
+    <a class="brand" href="#hero" aria-label="Vivi's Lab, accueil">
       <svg class="logo-heart" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
         <path class="heart" d="M16 28C6 21 3 15.5 3 11.5A6.5 6.5 0 0 1 16 9a6.5 6.5 0 0 1 13 2.5C29 15.5 26 21 16 28z"/>
         <path class="beat" pathLength="100" d="M5 16h6l2-4 3 8 2.5-6 1.5 2H27"/>
-      </svg> V.E.A <span class="brand-sub">/ lab notebook</span>
+      </svg>
+      <span class="brand-name">Vivi's Lab</span>
     </a>
 
     <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Ouvrir le menu">
       <span></span><span></span><span></span>
     </button>
 
-    <nav id="nav" class="nav">
-      <a href="#apropos">À propos</a>
-      <a href="#projets">Projets</a>
-      <a href="#competences">Compétences</a>
-      <a href="#contact">Contact</a>
+    <!-- Les liens ouvrent les panneaux en mode scène, ou défilent vers la section en version rapide -->
+    <nav id="nav" class="nav" aria-label="Navigation principale">
+      <a href="#panel-about" data-panel="about">À propos</a>
+      <a href="#panel-projects" data-panel="projects">Projets</a>
+      <a href="#panel-skills" data-panel="skills">Compétences</a>
+      <a href="#panel-contact" data-panel="contact">Contact</a>
+      <a href="assets/cv.pdf" download>CV</a>
     </nav>
 
-    <button class="theme-toggle" id="theme-toggle" aria-label="Basculer le mode sombre / clair" title="Mode sombre / clair">
-      <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>
-      <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>
+    <button class="mode-toggle" id="mode-toggle" aria-pressed="false" hidden>Version rapide</button>
+
+    <button class="theme-toggle" id="theme-toggle" aria-label="Basculer entre le jour et la nuit" title="Jour / nuit">
+      <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>
     </button>
   </header>
 
-  <main id="main">
+  <!-- ============ SCÈNE PIXEL ART (dessinée par script.js) ============ -->
+  <div class="stage" id="stage">
+    <svg id="scene" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges"
+         role="group" aria-label="Scène : le laboratoire de Vivi. Les objets sont cliquables ; le menu en haut ouvre les mêmes sections.">
+      <defs>
+        <!-- Découpe de la vue sur la mer à l'intérieur de la fenêtre -->
+        <clipPath id="clip-win"><rect x="16" y="16" width="78" height="66"/></clipPath>
+        <!-- Halo chaud de la lampe -->
+        <radialGradient id="g-warm">
+          <stop offset="0" stop-color="#FFD27A" stop-opacity=".75"/>
+          <stop offset="1" stop-color="#FFD27A" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
 
-    <!-- ============ HERO ============ -->
-    <section id="hero" class="hero">
+      <g id="bg" aria-hidden="true"></g>
+      <g id="win" aria-hidden="true"></g>
 
-      <!-- Icônes flottantes : data-depth = intensité de la parallaxe souris -->
-      <div class="floaters" aria-hidden="true">
-        <span class="fl fl-1" data-depth="26"><svg><use href="#i-heart"/></svg></span>
-        <span class="fl fl-2" data-depth="-18"><svg><use href="#i-ecg"/></svg></span>
-        <span class="fl fl-3" data-depth="34"><svg><use href="#i-chip"/></svg></span>
-        <span class="fl fl-4" data-depth="-28"><svg><use href="#i-sensor"/></svg></span>
-        <span class="fl fl-5" data-depth="20"><svg><use href="#i-steth"/></svg></span>
-        <span class="fl fl-6" data-depth="-36"><svg><use href="#i-dna"/></svg></span>
-        <span class="fl fl-7" data-depth="30"><svg><use href="#i-bt"/></svg></span>
-        <span class="fl fl-8" data-depth="-22"><svg><use href="#i-board"/></svg></span>
+      <!-- Avatar : une bulle apparaît au survol / au focus -->
+      <g id="hot-avatar" class="hot" role="img" tabindex="0"
+         aria-label="Avatar pixel art de Vivi : blouse blanche, pull rose, casque audio, en train de câbler une breadboard. Bulle : Bonjour ! Je cherche un stage de 3 mois dès juillet 2027."
+         data-tip="Bonjour ! Je cherche un stage de 3 mois dès juillet 2027 👋" data-bubble data-box="136,56,48,66">
+        <g id="avatar-art"></g>
+      </g>
+
+      <g id="bench" aria-hidden="true"></g>
+      <g id="decor" aria-hidden="true"></g>
+
+      <!-- Objets cliquables : data-panel = panneau à ouvrir, data-box = zone de survol (x,y,l,h) -->
+      <g id="hot-monitor" class="hot" role="button" tabindex="0"
+         aria-label="Moniteur cardiaque : ouvrir la section À propos"
+         data-panel="about" data-tip="Moniteur cardiaque · À propos" data-box="98,94,36,30"><g class="art"></g></g>
+
+      <g id="hot-tablet" class="hot" role="button" tabindex="0"
+         aria-label="Tablette avec dashboard de capteurs : ouvrir la section Projets"
+         data-panel="projects" data-tip="Tablette · Projets" data-box="190,96,36,28"><g class="art"></g></g>
+
+      <g id="hot-shelf" class="hot" role="button" tabindex="0"
+         aria-label="Étagère de cartes électroniques, de capteurs et de fioles : ouvrir la section Compétences"
+         data-panel="skills" data-tip="Étagère · Compétences" data-box="192,38,70,52"><g class="art"></g></g>
+
+      <g id="hot-mailbox" class="hot" role="button" tabindex="0"
+         aria-label="Boîte aux lettres : ouvrir la section Contact"
+         data-panel="contact" data-tip="Boîte aux lettres · Contact" data-box="260,38,40,34"><g class="art"></g></g>
+
+      <g id="hot-diploma" class="hot" role="button" tabindex="0"
+         aria-label="Diplôme encadré : télécharger mon CV au format PDF"
+         data-download="assets/cv.pdf" data-tip="Diplôme · Télécharger mon CV" data-box="138,12,44,34"><g class="art"></g></g>
+
+      <g id="hot-plant" class="hot" role="button" tabindex="0"
+         aria-label="Plante en pot : clique pour la faire pousser"
+         data-tip="Une petite plante 🌱 (clique !)" data-box="58,72,30,52"><g class="art"></g></g>
+
+      <g id="breadboard" aria-hidden="true"></g>
+      <g id="hands" aria-hidden="true"></g>
+      <g id="light" aria-hidden="true" pointer-events="none"></g>
+    </svg>
+
+    <!-- Infobulle partagée par tous les objets -->
+    <div id="tip" role="tooltip" hidden></div>
+  </div>
+
+  <!-- Annonces pour lecteurs d'écran (ex. croissance de la plante) -->
+  <p id="live" class="sr-only" aria-live="polite"></p>
+
+  <main id="contenu">
+
+    <!-- ============ ACCROCHE (carte compacte sur la scène, grande en version rapide) ============ -->
+    <section id="hero" class="hero-card">
+      <p class="name">Vivi EKOUVO AMA</p>
+      <h1>Ingénieure <span class="grad">e-santé</span> : je transforme des <span class="hl">capteurs</span> en outils pour les <span class="hl">soignants</span>.</h1>
+      <p class="lead">
+        Élève ingénieure en 4<sup>e</sup> année à l'ISEN Toulon (option e-santé), issue d'un parcours en biologie.
+        Je cherche un <strong>stage d'ingénieur de 3 mois à partir de juillet 2027</strong>.
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#panel-projects" data-panel="projects">Voir mes projets</a>
+        <a class="btn btn-ghost" href="assets/cv.pdf" download>Télécharger mon CV</a>
       </div>
+      <p class="hint">Clique sur les objets pour explorer.</p>
+    </section>
 
-      <div class="hero-inner">
-        <div class="hero-text">
-          <p class="entry-label reveal">Entrée n°00 · Page de garde</p>
-          <p class="name reveal">Vivi EKOUVO AMA</p>
+    <!-- ============ PANNEAU : À PROPOS ============ -->
+    <section class="panel" id="panel-about" aria-labelledby="t-about">
+      <div class="titlebar">
+        <h2 id="t-about">À propos</h2>
+        <button class="panel-close" type="button" aria-label="Fermer la fenêtre À propos">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="about-grid">
+          <div>
+            <!-- TODO : relis et ajuste ce texte pour qu'il te ressemble -->
+            <p>
+              Ce qui me motive dans l'e-santé, c'est l'idée qu'un signal invisible (un mouvement, une pression, un battement)
+              peut devenir une information qui aide vraiment un soignant à mieux accompagner un patient.
+              Venue de la biologie, j'ai gardé le réflexe de partir du vivant et du besoin clinique avant de choisir la technique.
+            </p>
+            <p>
+              J'aime construire des systèmes de bout en bout : choisir les capteurs, faire dialoguer l'électronique embarquée
+              et le logiciel, puis présenter les données de façon claire. Curieuse, rigoureuse et à l'aise pour coordonner
+              une équipe, je prends goût à transformer une idée de terrain en prototype utilisable.
+            </p>
+            <dl class="facts">
+              <dt>Formation</dt><dd>Cycle ingénieur, 4<sup>e</sup> année, ISEN Toulon</dd>
+              <dt>Option</dt><dd>E-santé</dd>
+              <dt>Parcours antérieur</dt><dd>Biologie</dd>
+              <dt>Recherche</dt><dd>Stage ingénieur · 3 mois · juillet 2027</dd>
+              <dt>Langues</dt><dd>Français, anglais</dd>
+            </dl>
+          </div>
 
-          <!-- L'accroche est tapée par script.js ; le texte complet reste ici en secours (sans JS) -->
-          <h1 id="headline" class="reveal">Ingénieure <span class="grad">e-santé</span> : je transforme des <span class="hl">capteurs</span> en outils pour les <span class="hl">soignants</span>.</h1>
-
-          <p class="lead reveal">
-            Élève ingénieure en 4<sup>e</sup> année à l'ISEN Toulon (option e-santé), issue d'un parcours en biologie.
-            Je cherche un <strong>stage d'ingénieur de 3 mois à partir de juillet 2027</strong>.
-          </p>
-          <div class="cta reveal">
-            <a class="btn btn-primary" href="#projets">Voir mes projets</a>
-            <a class="btn btn-ghost" href="assets/cv.pdf" download>Télécharger mon CV</a>
+          <!-- Photo de profil + anneau « moniteur cardiaque » (tracé par script.js) -->
+          <div class="portrait">
+            <svg class="ring" viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
+              <path id="ring-base" class="ring-base" d=""></path>
+              <path id="ring-pulse" class="ring-pulse" d=""></path>
+            </svg>
+            <img src="assets/photo.jpg" alt="Portrait de Vivi EKOUVO AMA" width="400" height="400" loading="lazy">
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Photo de profil + anneau « moniteur cardiaque » (tracé par script.js) -->
-        <div class="portrait reveal">
-          <svg class="ring" viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
-            <path id="ring-base" class="ring-base" d=""></path>
-            <path id="ring-pulse" class="ring-pulse" d=""></path>
+    <!-- ============ PANNEAU : PROJETS ============ -->
+    <section class="panel" id="panel-projects" aria-labelledby="t-projects">
+      <div class="titlebar">
+        <h2 id="t-projects">Projets</h2>
+        <button class="panel-close" type="button" aria-label="Fermer la fenêtre Projets">×</button>
+      </div>
+      <div class="panel-body">
+
+        <!-- Projet phare (écrit en dur) avec son étude de cas -->
+        <article class="card card-featured">
+          <span class="badge">Projet phare · Cheffe de projet</span>
+          <h3>Sensor-based monitoring for post-injury hippotherapy</h3>
+          <p>
+            Des capteurs IMU sur le patient et sur le cheval, associés à un tapis de pression, transmettent leurs données
+            en Bluetooth à une tablette. Un dashboard donne au thérapeute la symétrie pelvienne, la régularité de la foulée
+            et une alerte de fatigue.
+          </p>
+          <ul class="tags"><li>IMU</li><li>Tapis de pression</li><li>Bluetooth</li><li>Dashboard</li></ul>
+
+          <details class="case">
+            <summary>Lire l'étude de cas</summary>
+            <h4>Problème</h4>
+            <p>
+              En hippothérapie après une blessure, le thérapeute évalue la posture et la progression du patient
+              surtout à l'œil. Il manque des mesures objectives et continues pour suivre la symétrie du bassin,
+              la régularité de la marche et la fatigue pendant la séance.
+            </p>
+            <h4>Approche</h4>
+            <p>
+              Le système associe des <strong>capteurs IMU</strong> placés sur le patient et sur le cheval à un
+              <strong>tapis de pression</strong>. Les données sont transmises en <strong>Bluetooth</strong> à une tablette,
+              où un dashboard dédié au thérapeute les met en forme. J'ai coordonné l'équipe, la répartition des tâches
+              et les échéances du projet.
+            </p>
+            <h4>Résultat</h4>
+            <ul>
+              <li><strong>Symétrie pelvienne</strong> du patient visualisée en temps réel.</li>
+              <li><strong>Régularité de la foulée</strong> suivie au fil de la séance.</li>
+              <li><strong>Alerte de fatigue</strong> pour aider le thérapeute à adapter la séance.</li>
+            </ul>
+            <!-- TODO : ajouter des chiffres, captures ou un lien vers le rapport si disponibles -->
+          </details>
+        </article>
+
+        <!-- Dépôts GitHub chargés automatiquement (topic « portfolio ») -->
+        <h3 class="sub">Autres projets <span class="sub-note">· depuis GitHub</span></h3>
+        <div id="repos" class="cards" aria-live="polite" aria-busy="true">
+          <div class="card skeleton" aria-hidden="true"></div>
+          <div class="card skeleton" aria-hidden="true"></div>
+          <div class="card skeleton" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANNEAU : COMPÉTENCES ============ -->
+    <section class="panel" id="panel-skills" aria-labelledby="t-skills">
+      <div class="titlebar">
+        <h2 id="t-skills">Compétences</h2>
+        <button class="panel-close" type="button" aria-label="Fermer la fenêtre Compétences">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="filters" role="group" aria-label="Filtrer les compétences">
+          <button class="chip is-active" data-filter="all" aria-pressed="true">Tout</button>
+          <button class="chip" data-filter="embarque" aria-pressed="false">Embarqué</button>
+          <button class="chip" data-filter="logiciel" aria-pressed="false">Logiciel</button>
+          <button class="chip" data-filter="reseaux" aria-pressed="false">Réseaux</button>
+          <button class="chip" data-filter="methodes" aria-pressed="false">Méthodes</button>
+          <button class="chip" data-filter="langues" aria-pressed="false">Langues</button>
+        </div>
+
+        <div class="skills" id="skills">
+          <div class="skill-group" data-cat="embarque">
+            <h3>Embarqué</h3>
+            <ul><li>C</li><li>VHDL</li><li>Électronique analogique</li><li>LTSpice</li><li>Arduino / STM32</li></ul>
+          </div>
+          <div class="skill-group" data-cat="logiciel">
+            <h3>Logiciel</h3>
+            <ul><li>Python</li><li>Java</li><li>JavaScript</li><li>PHP</li><li>HTML/CSS</li><li>Git</li><li>Linux</li></ul>
+          </div>
+          <div class="skill-group" data-cat="reseaux">
+            <h3>Réseaux</h3>
+            <ul><li>Cisco</li></ul>
+          </div>
+          <div class="skill-group" data-cat="methodes">
+            <h3>Méthodes</h3>
+            <ul><li>Agile</li><li>Gestion de projet</li></ul>
+          </div>
+          <div class="skill-group" data-cat="langues">
+            <h3>Langues</h3>
+            <ul><li>Français</li><li>Anglais</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANNEAU : CONTACT (carte postale) ============ -->
+    <section class="panel" id="panel-contact" aria-labelledby="t-contact">
+      <div class="titlebar">
+        <h2 id="t-contact">Contact</h2>
+        <button class="panel-close" type="button" aria-label="Fermer la fenêtre Contact">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="postcard">
+          <!-- Timbre pixel art (décoratif) et cachet de la poste -->
+          <svg class="stamp" viewBox="0 0 24 28" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+            <rect width="24" height="28" fill="#F7D6DF"/>
+            <rect x="2" y="2" width="20" height="24" fill="#FFF6E8"/>
+            <path fill="#E8547A" d="M6 9h4v1h2V9h4v1h1v3h-1v1h-1v1h-1v1h-1v1h-2v-1h-1v-1h-1v-1H7v-1H6z"/>
+            <rect x="5" y="21" width="14" height="1" fill="#1B2A4A"/>
+            <rect x="8" y="23" width="8" height="1" fill="#14A3A0"/>
           </svg>
-          <img src="assets/photo.jpg" alt="Portrait de Vivi EKOUVO AMA" width="400" height="400" fetchpriority="high">
-        </div>
-      </div>
-    </section>
+          <div class="postmark" aria-hidden="true">TOULON<br>2027</div>
 
-    <!-- ============ À PROPOS ============ -->
-    <section id="apropos" class="section">
-      <p class="entry-label reveal">Entrée n°01 · Observations</p>
-      <h2 class="reveal">À propos</h2>
-      <div class="about-grid">
-        <div class="reveal">
-          <!-- TODO : relis et ajuste ce texte pour qu'il te ressemble -->
-          <p>
-            Ce qui me motive dans l'e-santé, c'est l'idée qu'un signal invisible — un mouvement, une pression, un battement —
-            peut devenir une information qui aide vraiment un soignant à mieux accompagner un patient.
-            Venue de la biologie, j'ai gardé le réflexe de partir du vivant et du besoin clinique avant de choisir la technique.
-          </p>
-          <p>
-            J'aime construire des systèmes de bout en bout : choisir les capteurs, faire dialoguer l'électronique embarquée
-            et le logiciel, puis présenter les données de façon claire. Curieuse, rigoureuse et à l'aise pour coordonner
-            une équipe, je prends goût à transformer une idée de terrain en prototype utilisable.
-          </p>
-        </div>
-        <aside class="note-card reveal" aria-label="Fiche rapide">
-          <h3>Fiche rapide</h3>
-          <dl>
-            <dt>Formation</dt><dd>Cycle ingénieur, 4<sup>e</sup> année — ISEN Toulon</dd>
-            <dt>Option</dt><dd>E-santé</dd>
-            <dt>Parcours antérieur</dt><dd>Biologie</dd>
-            <dt>Recherche</dt><dd>Stage ingénieur · 3 mois · juillet 2027</dd>
-            <dt>Langues</dt><dd>Français, anglais</dd>
-          </dl>
-        </aside>
-      </div>
-    </section>
+          <!-- TODO : remplacer YOUR_FORM_ID par l'identifiant de ton formulaire Formspree (https://formspree.io) -->
+          <form id="contact-form" class="form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate>
+            <p class="dear">Chère Vivi,</p>
+            <label for="name">Nom</label>
+            <input id="name" name="name" type="text" autocomplete="name" required>
 
-    <!-- ============ PROJETS ============ -->
-    <section id="projets" class="section">
-      <p class="entry-label reveal">Entrée n°02 · Expériences</p>
-      <h2 class="reveal">Projets</h2>
-      <p class="section-intro reveal">Clique sur le projet phare pour ouvrir l'étude de cas.</p>
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" autocomplete="email" required>
 
-      <!-- Projet phare (écrit en dur) -->
-      <article class="card card-featured tilt reveal" tabindex="0" role="button" data-modal="modal-hippo" aria-haspopup="dialog">
-        <span class="badge">Projet phare · Cheffe de projet</span>
-        <h3>Sensor-based monitoring for post-injury hippotherapy</h3>
-        <p>
-          Des capteurs IMU sur le patient et sur le cheval, associés à un tapis de pression, transmettent leurs données
-          en Bluetooth à une tablette. Un dashboard donne au thérapeute la symétrie pelvienne, la régularité de la foulée
-          et une alerte de fatigue.
-        </p>
-        <ul class="tags small"><li>IMU</li><li>Tapis de pression</li><li>Bluetooth</li><li>Dashboard</li></ul>
-        <span class="more">Lire l'étude de cas →</span>
-      </article>
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="5" required></textarea>
 
-      <!-- Dépôts GitHub chargés automatiquement (topic « portfolio ») -->
-      <h3 class="sub reveal">Autres projets <span class="sub-note">· depuis GitHub</span></h3>
-      <div id="repos" class="cards" aria-live="polite" aria-busy="true">
-        <!-- État de chargement : squelettes remplacés par script.js -->
-        <div class="card skeleton" aria-hidden="true"></div>
-        <div class="card skeleton" aria-hidden="true"></div>
-        <div class="card skeleton" aria-hidden="true"></div>
-      </div>
-    </section>
+            <!-- Champ piège anti-spam : invisible pour les humains -->
+            <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp">
 
-    <!-- ============ COMPÉTENCES ============ -->
-    <section id="competences" class="section">
-      <p class="entry-label reveal">Entrée n°03 · Matériel &amp; méthodes</p>
-      <h2 class="reveal">Compétences</h2>
+            <button type="submit" class="btn btn-primary">Envoyer la carte</button>
+            <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
 
-      <div class="filters reveal" role="group" aria-label="Filtrer les compétences">
-        <button class="chip is-active" data-filter="all" aria-pressed="true">Tout</button>
-        <button class="chip" data-filter="embarque" aria-pressed="false">Embarqué</button>
-        <button class="chip" data-filter="logiciel" aria-pressed="false">Logiciel</button>
-        <button class="chip" data-filter="reseaux" aria-pressed="false">Réseaux</button>
-        <button class="chip" data-filter="methodes" aria-pressed="false">Méthodes</button>
-        <button class="chip" data-filter="langues" aria-pressed="false">Langues</button>
-      </div>
-
-      <div class="skills" id="skills">
-        <div class="skill-group reveal" data-cat="embarque">
-          <h3>Embarqué</h3>
-          <ul><li>C</li><li>VHDL</li><li>Électronique analogique</li><li>LTSpice</li><li>Arduino / STM32</li></ul>
-        </div>
-        <div class="skill-group reveal" data-cat="logiciel">
-          <h3>Logiciel</h3>
-          <ul><li>Python</li><li>Java</li><li>JavaScript</li><li>PHP</li><li>HTML/CSS</li><li>Git</li><li>Linux</li></ul>
-        </div>
-        <div class="skill-group reveal" data-cat="reseaux">
-          <h3>Réseaux</h3>
-          <ul><li>Cisco</li></ul>
-        </div>
-        <div class="skill-group reveal" data-cat="methodes">
-          <h3>Méthodes</h3>
-          <ul><li>Agile</li><li>Gestion de projet</li></ul>
-        </div>
-        <div class="skill-group reveal" data-cat="langues">
-          <h3>Langues</h3>
-          <ul><li>Français</li><li>Anglais</li></ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ CONTACT ============ -->
-    <section id="contact" class="section">
-      <p class="entry-label reveal">Entrée n°04 · Conclusion</p>
-      <h2 class="reveal">Contact</h2>
-      <p class="section-intro reveal">Un stage, une question, une idée de projet ? Écris-moi.</p>
-
-      <div class="contact-grid">
-        <!-- TODO : remplacer YOUR_FORM_ID par l'identifiant de ton formulaire Formspree (https://formspree.io) -->
-        <form id="contact-form" class="form reveal" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate>
-          <label for="name">Nom</label>
-          <input id="name" name="name" type="text" autocomplete="name" required>
-
-          <label for="email">E-mail</label>
-          <input id="email" name="email" type="email" autocomplete="email" required>
-
-          <label for="message">Message</label>
-          <textarea id="message" name="message" rows="5" required></textarea>
-
-          <!-- Champ piège anti-spam : invisible pour les humains -->
-          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp">
-
-          <button type="submit" class="btn btn-primary">Envoyer le message</button>
-          <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
-        </form>
-
-        <div class="links reveal">
-          <h3>Me retrouver</h3>
-          <!-- TODO : remplacer par ton vrai lien LinkedIn -->
-          <a class="link-row" href="https://www.linkedin.com/in/TODO-ton-profil" target="_blank" rel="noopener">
-            <span>LinkedIn</span><span aria-hidden="true">↗</span>
-          </a>
-          <!-- TODO : vérifier que ce lien GitHub est le bon -->
-          <a class="link-row" href="https://github.com/amaviviekouvo-cyber" target="_blank" rel="noopener">
-            <span>GitHub</span><span aria-hidden="true">↗</span>
-          </a>
-          <a class="link-row" href="assets/cv.pdf" download>
-            <span>Télécharger mon CV</span><span aria-hidden="true">↓</span>
-          </a>
+          <div class="address">
+            <h3>Me retrouver</h3>
+            <!-- TODO : remplacer par ton vrai lien LinkedIn -->
+            <a class="link-row" href="https://www.linkedin.com/in/TODO-ton-profil" target="_blank" rel="noopener">
+              <span>LinkedIn</span><span aria-hidden="true">↗</span>
+            </a>
+            <!-- TODO : vérifier que ce lien GitHub est le bon -->
+            <a class="link-row" href="https://github.com/amaviviekouvo-cyber" target="_blank" rel="noopener">
+              <span>GitHub</span><span aria-hidden="true">↗</span>
+            </a>
+            <a class="link-row" href="assets/cv.pdf" download>
+              <span>Télécharger mon CV</span><span aria-hidden="true">↓</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -267,38 +340,8 @@
     <p>© <span id="year"></span> Vivi EKOUVO AMA · Fait main en HTML / CSS / JS</p>
   </footer>
 
-  <!-- ============ MODALE « ÉTUDE DE CAS » ============ -->
-  <div class="modal" id="modal-hippo" role="dialog" aria-modal="true" aria-labelledby="t-hippo" hidden>
-    <div class="modal-box">
-      <button class="modal-close" aria-label="Fermer">×</button>
-      <p class="entry-label">Étude de cas · Projet phare</p>
-      <h3 id="t-hippo">Sensor-based monitoring for post-injury hippotherapy</h3>
-      <p class="role">Rôle : cheffe de projet</p>
-
-      <h4>Problème</h4>
-      <p>
-        En hippothérapie après une blessure, le thérapeute évalue la posture et la progression du patient
-        surtout à l'œil. Il manque des mesures objectives et continues pour suivre la symétrie du bassin,
-        la régularité de la marche et la fatigue pendant la séance.
-      </p>
-
-      <h4>Approche</h4>
-      <p>
-        Le système associe des <strong>capteurs IMU</strong> placés sur le patient et sur le cheval à un
-        <strong>tapis de pression</strong>. Les données sont transmises en <strong>Bluetooth</strong> à une tablette,
-        où un dashboard dédié au thérapeute les met en forme. J'ai coordonné l'équipe, la répartition des tâches
-        et les échéances du projet.
-      </p>
-
-      <h4>Résultat</h4>
-      <ul>
-        <li><strong>Symétrie pelvienne</strong> du patient visualisée en temps réel.</li>
-        <li><strong>Régularité de la foulée</strong> suivie au fil de la séance.</li>
-        <li><strong>Alerte de fatigue</strong> pour aider le thérapeute à adapter la séance.</li>
-      </ul>
-      <!-- TODO : ajouter des chiffres, captures ou un lien vers le rapport si disponibles -->
-    </div>
-  </div>
+  <!-- Fond assombri derrière les panneaux (mode scène) -->
+  <div id="backdrop" class="backdrop" hidden></div>
 
   <script src="script.js"></script>
 </body>

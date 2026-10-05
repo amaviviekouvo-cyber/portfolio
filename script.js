@@ -1,36 +1,403 @@
 /* =========================================================
-   Portfolio « Lab Notebook » — comportements
+   Vivi's Lab : comportements et dessin de la scène pixel art
+   =========================================================
+   Sommaire
+   1. Réglages et utilitaires
+   2. Thème jour / nuit
+   3. Dessin de la scène (SVG généré, pixel par pixel)
+   4. Objets cliquables : infobulles, activation, plante
+   5. Panneaux (fenêtres rétro) et focus clavier
+   6. Mode scène / version rapide
+   7. Menu mobile, compétences, anneau de la photo
+   8. Dépôts GitHub
+   9. Formulaire de contact
    ========================================================= */
 (function () {
   'use strict';
 
-  /* ---------- Réglages à personnaliser ---------- */
+  /* ---------- 1. Réglages et utilitaires ---------- */
   // TODO : vérifier que c'est bien ton pseudo GitHub (utilisé pour charger les dépôts)
   var GITHUB_USER = 'amaviviekouvo-cyber';
   // Seuls les dépôts portant ce topic GitHub sont affichés
   var REPO_TOPIC = 'portfolio';
 
-  // Indique au CSS que JavaScript est actif (pour les animations d'apparition)
-  document.documentElement.classList.add('js');
-
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+  var body = document.body;
 
-  /* ---------- 0. Préférences : animations réduites / mode léger ---------- */
-  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // Mode léger : petit écran ou écran tactile → moins d'effets coûteux
-  var lite = matchMedia('(max-width: 820px), (pointer: coarse)').matches;
-  if (lite) document.documentElement.classList.add('lite');
-
-  /* ---------- 1. Thème sombre / clair mémorisé ---------- */
-  var root = document.documentElement;
+  /* ---------- 2. Thème jour / nuit (mémorisé) ---------- */
   $('#theme-toggle').addEventListener('click', function () {
+    var root = document.documentElement;
     var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
     try { localStorage.setItem('theme', next); } catch (e) { /* stockage indisponible */ }
   });
 
-  /* ---------- 2. Menu mobile ---------- */
+  /* ---------- 3. Dessin de la scène ----------
+     La scène est une grille de 320 x 180 « pixels » (viewBox du SVG).
+     Chaque élément est un rectangle coloré par une classe c-xxx (voir style.css),
+     ce qui permet de changer les couleurs, le jour/nuit et l'avatar uniquement en CSS. */
+
+  // R : crée un rectangle pixel (classe de couleur, x, y, largeur, hauteur, classe d'animation, style inline)
+  function R(c, x, y, w, h, extra, style) {
+    return '<rect class="c-' + c + (extra ? ' ' + extra : '') + '" x="' + x + '" y="' + y +
+           '" width="' + w + '" height="' + h + '"' + (style ? ' style="' + style + '"' : '') + '/>';
+  }
+  // Remplit un groupe SVG existant avec du markup
+  function fill(sel, markup) { $(sel).innerHTML = markup; }
+
+  var sceneBuilt = false;
+
+  function buildScene() {
+    if (sceneBuilt) return;
+    sceneBuilt = true;
+    var s, i, x, y;
+
+    /* --- Fond : mur, soubassement, guirlande lumineuse --- */
+    s = R('wall', -400, -300, 1120, 430) + R('wall2', -400, 98, 1120, 32) + R('trim', -400, 96, 1120, 2);
+    // petits motifs de papier peint
+    for (y = 8; y < 92; y += 14) for (x = -10; x < 330; x += 14) s += R('wallp', x + ((y / 14) % 2 ? 7 : 0), y, 1, 1);
+    // fil de la guirlande (courbe) puis ampoules chaudes qui scintillent
+    s += '<path class="c-wire" d="M-20 4Q160 20 340 4" fill="none" stroke-width=".6"/>';
+    for (i = 0; i <= 20; i++) {
+      var t = i / 20;
+      var bx = Math.round(-20 + 360 * t);
+      var by = Math.round(4 * (1 - t) * (1 - t) + 40 * t * (1 - t) + 4 * t * t);
+      s += R('warm', bx - 1, by + 1, 3, 3, 'twinkle', '--d:' + ((i * 7) % 5) * 0.45 + 's');
+    }
+    fill('#bg', s);
+
+    /* --- Fenêtre sur la mer et les collines de Toulon --- */
+    s = R('wood', 11, 11, 88, 76);
+    s += '<g clip-path="url(#clip-win)">';
+    s += R('sky1', 16, 16, 78, 14) + R('sky2', 16, 30, 78, 14) + R('sky3', 16, 44, 78, 20);
+    // étoiles et lune (nuit seulement)
+    var stars = [[22, 20], [34, 27], [48, 19], [66, 24], [84, 31], [28, 37], [72, 37], [58, 33], [42, 40]];
+    s += '<g class="night-only">';
+    stars.forEach(function (p, k) { s += R('star', p[0], p[1], 1, 1, 'twinkle', '--d:' + (k * 0.37) + 's'); });
+    s += R('moon', 79, 22, 3, 1) + R('moon', 78, 23, 2, 4) + R('moon', 79, 27, 3, 1) + R('moon', 82, 23, 1, 1) + R('moon', 82, 26, 1, 1) + '</g>';
+    // soleil et nuages (jour seulement)
+    s += '<g class="day-only">' + R('sun', 76, 20, 8, 8) + R('sun', 74, 22, 12, 4) + R('sun', 78, 18, 4, 12) +
+         '<g class="cloud">' + R('cloud', 24, 24, 12, 3) + R('cloud', 27, 22, 6, 2) + R('cloud', 50, 32, 10, 3) + R('cloud', 52, 30, 5, 2) + '</g></g>';
+    // collines (le Faron et ses voisines) et petit fort
+    s += '<polygon class="c-hill1" points="16,62 24,56 34,50 46,44 56,42 66,45 78,50 94,58 94,66 16,66"/>';
+    s += R('hill2', 54, 40, 6, 3);
+    s += '<polygon class="c-hill2" points="16,66 16,60 26,58 38,62 48,66"/>';
+    s += '<polygon class="c-hill2" points="60,66 72,60 84,58 94,60 94,66"/>';
+    // lumières de la ville (nuit)
+    s += '<g class="night-only">';
+    [[20, 61], [24, 62], [30, 60], [35, 63], [66, 63], [72, 61], [80, 59], [87, 61], [90, 60]].forEach(function (p, k) {
+      s += R('warm', p[0], p[1], 1, 1, 'twinkle', '--d:' + (k * 0.5) + 's');
+    });
+    s += '</g>';
+    // mer, vagues animées et petit voilier
+    s += R('sea', 16, 64, 78, 20);
+    var w1 = '', w2 = '', w3 = '';
+    for (x = 8; x < 110; x += 12) w1 += R('crest', x, 68, 5, 1);
+    for (x = 14; x < 110; x += 14) w2 += R('crest', x, 74, 6, 1);
+    for (x = 10; x < 110; x += 10) w3 += R('crest', x, 79, 4, 1);
+    s += '<g class="wave" style="--wd:-12px;--wt:4s">' + w1 + '</g>' +
+         '<g class="wave" style="--wd:-14px;--wt:6s">' + w2 + '</g>' +
+         '<g class="wave" style="--wd:-10px;--wt:3s">' + w3 + '</g>';
+    s += R('wood2', 41, 65, 6, 1) + R('paper', 43, 61, 1, 4) + R('paper', 44, 62, 1, 3);
+    s += '</g>';
+    // croisillons, reflet sur la vitre et rebord
+    s += R('wood', 54, 16, 3, 66) + R('wood', 16, 46, 78, 3) + R('shine', 20, 18, 2, 10) + R('shine', 24, 18, 1, 6) + R('wood2', 9, 86, 92, 4);
+    fill('#win', s);
+
+    /* --- Avatar : jeune femme en blouse blanche, pull rose, casque audio ---
+       Couleurs : cheveux, peau et pull se règlent dans les variables en haut de style.css. */
+    s = '';
+    s += R('skin', 156, 86, 8, 7);                                                    // cou
+    s += R('coat', 140, 94, 40, 28) + R('coatsh', 140, 94, 40, 1);                    // blouse (épaules, manches)
+    s += R('sweater', 150, 93, 20, 29);                                               // pull rose
+    s += R('sweaterd', 153, 92, 4, 2) + R('sweaterd', 163, 92, 4, 2) + R('sweaterd', 155, 94, 10, 1); // col rond
+    s += R('skin', 157, 92, 6, 2);                                                    // décolleté du col
+    s += R('coat', 148, 92, 3, 10) + R('coat', 169, 92, 3, 10);                       // revers de la blouse
+    s += R('coatsh', 150, 94, 1, 28) + R('coatsh', 169, 94, 1, 28);                   // ombre des revers
+    s += R('coatsh', 142, 108, 6, 1) + R('coatsh', 142, 108, 1, 6) + R('pink', 146, 105, 1, 4); // poche + stylo
+    s += R('powder', 172, 102, 5, 3) + R('navy', 173, 103, 3, 1);                     // badge
+    // Tête (groupe animé : elle se baisse de temps en temps vers la breadboard)
+    var head = '';
+    head += R('hair', 145, 64, 5, 34) + R('hair', 170, 64, 5, 34);                    // mèches longues
+    head += R('hair', 147, 60, 26, 8);                                                // volume des cheveux
+    head += R('skin', 150, 66, 20, 20) + R('skin', 152, 86, 16, 1);                   // visage
+    head += R('hair', 150, 66, 8, 4) + R('hair', 160, 66, 10, 3);                     // frange
+    head += R('hairl', 150, 62, 6, 1) + R('hairl', 146, 70, 1, 12);                   // reflets
+    head += R('navy', 146, 57, 28, 3) + R('powder', 152, 58, 16, 1);                  // arceau du casque
+    head += R('navy', 144, 60, 3, 12) + R('navy', 173, 60, 3, 12);                    // montants
+    head += R('navy', 141, 70, 7, 13) + R('navy', 172, 70, 7, 13);                    // écouteurs
+    head += R('powder', 142, 73, 2, 7) + R('powder', 176, 73, 2, 7);                  // détails rose poudré
+    head += R('hair', 153, 72, 4, 1) + R('hair', 163, 72, 4, 1);                      // sourcils
+    head += '<g class="eyes">' + R('eye', 154, 75, 2, 3) + R('eye', 164, 75, 2, 3) +
+            R('white', 154, 75, 1, 1) + R('white', 164, 75, 1, 1) + '</g>';           // yeux (clignent)
+    head += R('skinsh', 160, 78, 1, 2);                                               // nez
+    head += R('blush', 152, 79, 3, 2) + R('blush', 165, 79, 3, 2);                    // joues
+    head += R('mouth', 158, 82, 4, 1) + R('mouth', 157, 81, 1, 1) + R('mouth', 162, 81, 1, 1); // sourire
+    s += '<g class="head">' + head + '</g>';
+    fill('#avatar-art', s);
+
+    /* --- Paillasse (plan de travail) et tiroirs --- */
+    s = R('bench-top', -400, 122, 1120, 12) + R('bench-hi', -400, 122, 1120, 1) +
+        R('bench-edge', -400, 134, 1120, 2) + R('bench', -400, 136, 1120, 300);
+    [24, 128, 232].forEach(function (dx) {
+      s += R('bench2', dx, 146, 84, 26) + R('bench-edge', dx, 146, 84, 1) + R('gold', dx + 34, 156, 16, 2);
+    });
+    fill('#bench', s);
+
+    /* --- Décor : tasse fumante et lampe qui scintille --- */
+    s = R('white', 236, 113, 8, 9) + R('pink', 237, 114, 6, 3) + R('white', 244, 115, 2, 5) + R('white', 245, 116, 1, 3);
+    s += R('inkline', 238, 108, 1, 2, 'steam', '--d:0s') + R('inkline', 241, 106, 1, 2, 'steam', '--d:.8s');
+    // lampe articulée
+    s += R('navy2', 258, 119, 14, 3) + R('navy', 264, 104, 2, 15) + R('navy', 266, 102, 8, 2) + R('navy', 272, 96, 2, 8);
+    s += R('pinkd', 268, 92, 16, 5) + R('pink', 270, 90, 12, 2) + R('warm', 272, 97, 8, 2, 'flick');
+    fill('#decor', s);
+
+    /* --- Objets cliquables --- */
+    // Moniteur cardiaque + ECG rose animé en continu
+    s = R('navy2', 112, 118, 8, 4) + R('navy2', 108, 121, 16, 1) + R('navy', 100, 98, 32, 21) + R('screen', 103, 101, 26, 14);
+    s += '<path class="ecg-base" pathLength="100" d="M104 109h5l2-4 3 9 3-11 2 6h8"/>' +
+         '<path class="ecg-run" pathLength="100" d="M104 109h5l2-4 3 9 3-11 2 6h8"/>';
+    s += '<g class="heart-px">' + R('pink', 121, 102, 2, 1) + R('pink', 125, 102, 2, 1) + R('pink', 121, 103, 6, 1) +
+         R('pink', 122, 104, 4, 1) + R('pink', 123, 105, 2, 1) + '</g>';
+    s += R('teal', 103, 117, 2, 1, 'ledblink') + R('pink', 108, 117, 2, 1, 'ledblink', '--d:.5s');
+    $('#hot-monitor .art').innerHTML = s;
+
+    // Tablette avec mini dashboard (courbes IMU et barres)
+    s = R('navy', 192, 100, 32, 22) + R('screen', 194, 102, 28, 18) + R('dark', 208, 101, 1, 1);
+    var c1 = 'M195 109l3-4 3 6 3-6 3 6 3-5 3 5 3-4 4 4';
+    var c2 = 'M195 112l4 1 4-3 4 3 4-2 4 2 4-3 2 2';
+    s += '<path class="imu-base pk" pathLength="100" d="' + c1 + '"/><path class="imu-run pk" pathLength="100" d="' + c1 + '"/>';
+    s += '<path class="imu-base tl" pathLength="100" d="' + c2 + '"/><path class="imu-run tl" pathLength="100" d="' + c2 + '" style="--t:3.4s"/>';
+    for (i = 0; i < 5; i++) s += R('powder', 196 + i * 5, 115, 3, 4, 'bar', '--d:' + (i * 0.25) + 's');
+    $('#hot-tablet .art').innerHTML = s;
+
+    // Étagère : cartes électroniques, capteurs, fioles
+    s = R('wood', 194, 56, 64, 3) + R('wood2', 200, 59, 2, 5) + R('wood2', 250, 59, 2, 5);
+    s += R('wood', 194, 84, 64, 3) + R('wood2', 200, 87, 2, 5) + R('wood2', 250, 87, 2, 5);
+    // rang du haut
+    s += R('green', 198, 48, 14, 8) + R('dark', 201, 50, 5, 4) + R('pink', 208, 50, 2, 2, 'ledblink') + R('gold', 198, 55, 14, 1);
+    s += R('navy', 216, 46, 8, 10) + R('teal', 218, 48, 4, 3) + R('powder', 219, 52, 2, 1) + R('navy', 219, 43, 2, 3);
+    s += R('glass', 233, 44, 3, 4) + R('glass', 231, 48, 7, 8) + R('pink', 231, 51, 7, 5);
+    s += R('glass', 243, 47, 3, 3) + R('glass', 241, 50, 7, 6) + R('teal', 241, 52, 7, 4);
+    // rang du bas
+    s += R('green', 198, 74, 16, 10) + R('dark', 201, 76, 6, 4) + R('teal', 210, 76, 2, 2, 'ledblink', '--d:.7s') + R('gold', 198, 83, 16, 1);
+    s += R('wood2', 223, 70, 6, 2) + R('glass', 222, 72, 8, 12) + R('powder', 222, 76, 8, 8);
+    s += R('navy', 236, 76, 10, 8) + R('pink', 238, 78, 3, 3, 'ledblink', '--d:.3s') + R('teal', 242, 78, 2, 2);
+    s += R('glass', 248, 74, 4, 10) + R('pink', 248, 78, 4, 6);
+    $('#hot-shelf .art').innerHTML = s;
+
+    // Boîte aux lettres murale avec enveloppe et drapeau
+    s = R('wood2', 274, 66, 6, 6);
+    s += R('paper', 271, 43, 10, 5) + R('pink', 275, 45, 2, 1);
+    s += R('pinkd', 264, 50, 26, 16) + R('pinkd', 266, 47, 22, 3) + R('pinkd', 269, 45, 16, 2);
+    s += R('pink', 266, 52, 22, 12) + R('dark', 270, 56, 14, 2) + R('powder', 270, 60, 6, 1);
+    s += '<g class="flag">' + R('navy', 290, 44, 2, 12) + R('powder', 292, 44, 5, 4) + '</g>';
+    $('#hot-mailbox .art').innerHTML = s;
+
+    // Diplôme encadré
+    s = R('gold', 141, 14, 38, 30) + R('wood', 143, 16, 34, 26) + R('paper', 145, 18, 30, 22);
+    s += R('inkline', 150, 22, 20, 1) + R('inkline', 152, 25, 16, 1) + R('inkline', 149, 28, 22, 1) + R('inkline', 151, 31, 8, 1);
+    s += R('pink', 165, 32, 6, 6) + R('powder', 166, 33, 2, 2) + R('pinkd', 166, 38, 2, 3) + R('pinkd', 169, 38, 2, 3);
+    $('#hot-diploma .art').innerHTML = s;
+
+    // Plante : cinq stades de croissance (data-s), affichés selon le nombre de clics
+    s = R('terrad', 20, 110, 18, 3) + R('terra', 22, 113, 14, 9) + R('terrad', 22, 120, 14, 2);
+    s += '<g class="pl" data-s="0">' + R('leafd', 28, 104, 2, 6) + R('leaf', 25, 104, 3, 2) + R('leaf', 31, 102, 3, 2) + '</g>';
+    s += '<g class="pl" data-s="1">' + R('leafd', 28, 96, 2, 8) + R('leaf', 24, 98, 4, 2) + R('leaf', 32, 96, 4, 2) + '</g>';
+    s += '<g class="pl" data-s="2">' + R('leafd', 28, 88, 2, 8) + R('leaf', 23, 90, 5, 2) + R('leaf', 32, 88, 5, 2) + R('leaf', 25, 94, 3, 2) + '</g>';
+    s += '<g class="pl" data-s="3">' + R('leafd', 28, 80, 2, 8) + R('leaf', 24, 82, 4, 2) + R('leaf', 32, 80, 4, 2) + R('leaf', 27, 78, 4, 2) + '</g>';
+    s += '<g class="pl" data-s="4">' + R('pink', 26, 74, 2, 2) + R('pink', 30, 74, 2, 2) + R('pink', 28, 72, 2, 2) + R('pink', 28, 76, 2, 2) + R('warm', 28, 74, 2, 2) + '</g>';
+    // décalée vers la droite (translate) pour rester visible au-dessus de la carte d'accroche
+    $('#hot-plant .art').innerHTML = '<g transform="translate(44 0)"><g class="plant">' + s + '</g></g>';
+
+    /* --- Breadboard posée devant l'avatar : fils, LED rose qui clignote, microcontrôleur --- */
+    s = R('bb', 134, 123, 52, 11) + R('pink', 136, 124, 48, 1) + R('teal', 136, 132, 48, 1);
+    for (x = 137; x < 184; x += 3) { s += R('hole', x, 126, 1, 1) + R('hole', x, 128, 1, 1) + R('hole', x, 130, 1, 1); }
+    // microcontrôleur (type Nano) branché sur la breadboard
+    s += R('teal2', 138, 124, 16, 7) + R('dark', 143, 125, 6, 4) + R('silver', 136, 126, 3, 3) + R('gold', 140, 124, 12, 1) + R('gold', 140, 130, 12, 1) + R('warm', 151, 126, 1, 1, 'ledblink', '--d:.2s');
+    // fils colorés
+    s += R('teal', 158, 121, 1, 6) + R('teal', 158, 121, 9, 1) + R('teal', 166, 121, 1, 6);
+    s += R('warm', 172, 122, 1, 5) + R('warm', 172, 122, 6, 1) + R('warm', 177, 122, 1, 5);
+    s += R('violet', 181, 124, 1, 6) + R('violet', 181, 124, 3, 1);
+    // LED rose + résistance
+    s += R('silver', 169, 127, 1, 3) + R('silver', 171, 127, 1, 3) + R('pink', 168, 123, 5, 4, 'led');
+    s += R('terra', 174, 129, 5, 2) + R('dark', 176, 129, 1, 2);
+    s += '<circle class="led-glow" cx="170.5" cy="125" r="6" fill="#E8547A"/>';
+    fill('#breadboard', s);
+
+    // Mains qui câblent (bougent légèrement quand la tête se baisse)
+    s = '<g class="hand hl">' + R('coat', 144, 118, 6, 5) + R('skin', 146, 122, 5, 3) + '</g>' +
+        '<g class="hand hr">' + R('coat', 170, 118, 6, 5) + R('skin', 169, 122, 5, 3) + '</g>';
+    fill('#hands', s);
+
+    /* --- Lumières : halo de la lampe et cône de lumière --- */
+    s = '<polygon class="lamp-cone" points="272,99 284,99 304,126 252,126"/>' +
+        '<circle class="lamp-glow" cx="276" cy="99" r="46" fill="url(#g-warm)"/>';
+    fill('#light', s);
+
+    // Zones de survol et anneau de focus clavier pour chaque objet cliquable
+    $$('.hot').forEach(function (g) {
+      var b = g.getAttribute('data-box').split(',');
+      g.insertAdjacentHTML('beforeend',
+        R('hit', b[0], b[1], b[2], b[3]) +
+        '<rect class="ring" x="' + b[0] + '" y="' + b[1] + '" width="' + b[2] + '" height="' + b[3] + '"/>');
+    });
+    drawPlant();
+  }
+
+  /* ---------- 4. Objets cliquables ---------- */
+  var tip = $('#tip');
+  var tipTarget = null;
+
+  // Affiche l'infobulle au-dessus (ou en dessous si pas de place) de l'objet visé
+  function showTip(el) {
+    tipTarget = el;
+    tip.textContent = el.getAttribute('data-tip');
+    tip.className = el.hasAttribute('data-bubble') ? 'bubble' : '';
+    tip.hidden = false;
+    var r = el.getBoundingClientRect();
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = Math.min(Math.max(r.left + r.width / 2, w / 2 + 8), window.innerWidth - w / 2 - 8);
+    var above = r.top - h - 12 > 64;
+    tip.classList.toggle('below', !above);
+    tip.style.left = left + 'px';
+    tip.style.top = (above ? r.top - 10 : r.bottom + 10) + 'px';
+  }
+  function hideTip() { tip.hidden = true; tipTarget = null; }
+
+  $$('.hot').forEach(function (g) {
+    g.addEventListener('mouseenter', function () { showTip(g); });
+    g.addEventListener('mouseleave', hideTip);
+    g.addEventListener('focus', function () { showTip(g); });
+    g.addEventListener('blur', hideTip);
+    // Clavier : Entrée ou Espace = clic
+    g.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        g.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      }
+    });
+  });
+
+  // Clic sur un objet : ouvre un panneau, télécharge le CV ou fait pousser la plante
+  $$('.hot').forEach(function (g) {
+    g.addEventListener('click', function () {
+      if (g.id === 'hot-plant') { growPlant(); return; }
+      if (g.hasAttribute('data-download')) {
+        var a = document.createElement('a');
+        a.href = g.getAttribute('data-download');
+        a.download = '';
+        document.body.appendChild(a); a.click(); a.remove();
+        return;
+      }
+      openPanel(g.getAttribute('data-panel'), g);
+    });
+  });
+
+  /* Easter egg : la plante pousse à chaque clic, fleurit, puis repart de zéro */
+  var plantStage = 0, PLANT_MAX = 4;
+  var plantMsg = [
+    'Une petite pousse 🌱 (clique !)', 'Elle grandit…', 'De belles feuilles !',
+    'Elle va bientôt fleurir…', 'Elle a fleuri 🌸 (encore un clic pour recommencer)'
+  ];
+  function drawPlant() {
+    $$('.pl').forEach(function (g) {
+      g.style.display = parseInt(g.getAttribute('data-s'), 10) <= plantStage ? '' : 'none';
+    });
+    var hot = $('#hot-plant');
+    hot.setAttribute('data-tip', plantMsg[plantStage]);
+    hot.setAttribute('aria-label', 'Plante en pot : ' + plantMsg[plantStage]);
+  }
+  function growPlant() {
+    plantStage = plantStage >= PLANT_MAX ? 0 : plantStage + 1;
+    drawPlant();
+    var plant = $('#hot-plant .plant');
+    plant.classList.remove('pop'); void plant.getBoundingClientRect(); plant.classList.add('pop');  // petite animation
+    $('#live').textContent = plantMsg[plantStage];
+    showTip($('#hot-plant'));
+  }
+
+  /* ---------- 5. Panneaux (fenêtres rétro) ---------- */
+  var backdrop = $('#backdrop');
+  var openedPanel = null, opener = null;
+
+  function inScene() { return body.classList.contains('mode-scene'); }
+
+  function openPanel(name, from) {
+    var p = document.getElementById('panel-' + name);
+    if (!p) return;
+    if (openedPanel) closePanel(true);
+    opener = from || document.activeElement;
+    p.classList.add('open');
+    backdrop.hidden = false;
+    openedPanel = p;
+    hideTip();
+    $('.panel-close', p).focus();
+  }
+  function closePanel(silent) {
+    if (!openedPanel) return;
+    openedPanel.classList.remove('open');
+    backdrop.hidden = true;
+    openedPanel = null;
+    if (!silent && opener && opener.focus) opener.focus();   // le focus revient sur l'objet d'origine
+  }
+
+  // Liens et boutons avec data-panel (menu, accroche) : en mode scène on ouvre la fenêtre ; sinon défilement normal
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('a[data-panel]') : null;
+    if (el && inScene()) { e.preventDefault(); openPanel(el.getAttribute('data-panel'), el); closeNav(); }
+  });
+  $$('.panel-close').forEach(function (b) { b.addEventListener('click', function () { closePanel(); }); });
+  backdrop.addEventListener('click', function () { closePanel(); });
+
+  document.addEventListener('keydown', function (e) {
+    if (!openedPanel) return;
+    if (e.key === 'Escape') { closePanel(); return; }
+    if (e.key === 'Tab') {       // le focus reste dans la fenêtre ouverte
+      var f = $$('a[href], button:not([disabled]), input:not([tabindex="-1"]), textarea, summary, [tabindex="0"]', openedPanel)
+        .filter(function (n) { return n.offsetParent !== null; });
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* ---------- 6. Mode scène / version rapide ---------- */
+  var modeBtn = $('#mode-toggle');
+  var pref = null;
+  try { pref = localStorage.getItem('mode'); } catch (e) { /* ignoré */ }
+  // Petit écran ou fenêtre très basse : la scène est remplacée automatiquement par la version rapide
+  var smallMQ = matchMedia('(max-width: 820px), (max-height: 520px)');
+
+  function applyMode() {
+    var scene = !smallMQ.matches && pref !== 'quick';
+    if (scene) buildScene();
+    body.classList.toggle('mode-scene', scene);
+    body.classList.toggle('mode-quick', !scene);
+    modeBtn.hidden = smallMQ.matches;               // inutile sur mobile : version rapide forcée
+    modeBtn.textContent = scene ? 'Version rapide' : 'Retour à la scène';
+    modeBtn.setAttribute('aria-pressed', String(!scene));
+    if (!scene) { closePanel(true); hideTip(); }
+    // Les panneaux sont des boîtes de dialogue en mode scène, de simples sections sinon
+    $$('.panel').forEach(function (p) {
+      if (scene) { p.setAttribute('role', 'dialog'); p.setAttribute('aria-modal', 'true'); p.setAttribute('tabindex', '-1'); }
+      else { p.removeAttribute('role'); p.removeAttribute('aria-modal'); p.removeAttribute('tabindex'); }
+    });
+  }
+  modeBtn.addEventListener('click', function () {
+    pref = body.classList.contains('mode-scene') ? 'quick' : 'scene';
+    try { localStorage.setItem('mode', pref); } catch (e) { /* ignoré */ }
+    applyMode();
+    window.scrollTo(0, 0);
+  });
+  if (smallMQ.addEventListener) smallMQ.addEventListener('change', applyMode);
+  else if (smallMQ.addListener) smallMQ.addListener(applyMode);
+  window.addEventListener('resize', function () { if (tipTarget) hideTip(); });
+  applyMode();
+
+  /* ---------- 7. Menu mobile, compétences, anneau de la photo ---------- */
   var toggle = $('#nav-toggle');
   var nav = $('#nav');
   function closeNav() {
@@ -43,117 +410,33 @@
   });
   $$('a', nav).forEach(function (a) { a.addEventListener('click', closeNav); });
 
-  /* ---------- 3. Apparition des éléments au scroll (fade + slide) ---------- */
-  // Numérote les badges de compétences pour les faire apparaître en cascade
+  // Filtre des compétences, avec cascade d'apparition des badges
   $$('.skill-group ul').forEach(function (ul) {
     $$('li', ul).forEach(function (li, i) { li.style.setProperty('--i', i); });
   });
-
-  var reveals = $$('.reveal');
-  if ('IntersectionObserver' in window && !reduced) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          var t = e.target;
-          t.classList.add('in');
-          io.unobserve(t);
-          // Retire le décalage une fois l'apparition finie (sinon il ralentirait le survol)
-          setTimeout(function () { t.style.transitionDelay = ''; }, 1200);
-        }
+  var chips = $$('.chip');
+  var groups = $$('.skill-group');
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var f = chip.getAttribute('data-filter');
+      chips.forEach(function (c) {
+        var on = c === chip;
+        c.classList.toggle('is-active', on);
+        c.setAttribute('aria-pressed', String(on));
       });
-    }, { threshold: 0.12 });
-    reveals.forEach(function (el, i) {
-      // léger décalage entre éléments frères pour un effet « en cascade »
-      el.style.transitionDelay = (i % 4) * 70 + 'ms';
-      io.observe(el);
+      groups.forEach(function (g) {
+        var hide = f !== 'all' && g.getAttribute('data-cat') !== f;
+        g.classList.toggle('is-hidden', hide);
+        if (!hide) { g.classList.remove('shown'); void g.offsetWidth; g.classList.add('shown'); }   // relance l'animation
+      });
     });
-  } else {
-    reveals.forEach(function (el) { el.classList.add('in'); });
-  }
+  });
+  groups.forEach(function (g) { g.classList.add('shown'); });
 
-  /* ---------- 4. Lien de navigation actif ---------- */
-  var links = $$('.nav a');
-  var sections = links.map(function (a) { return $(a.getAttribute('href')); });
-  function markCurrent() {
-    var y = window.scrollY + window.innerHeight * 0.35;
-    var current = -1;
-    sections.forEach(function (s, i) { if (s && s.offsetTop <= y) current = i; });
-    links.forEach(function (a, i) { a.classList.toggle('is-current', i === current); });
-  }
-
-  /* ---------- 5. Courbe ECG dessinée au scroll ----------
-     Tracé vertical dans la marge gauche, ponctué de complexes QRS.
-     La longueur visible dépend de la progression du scroll. */
-  var svg = $('#signal');
-  var line = $('#signal-line');
-  var ghost = $('#signal-ghost');
-  var pathLen = 0;
-
-  function buildSignal() {
-    var h = document.documentElement.scrollHeight;
-    var small = window.innerWidth < 480;
-    var x0 = small ? 14 : 26;          // axe de base de la courbe
-    var amp = small ? 9 : 16;          // amplitude des pics
-    var beat = 170;                    // hauteur d'un battement (px)
-
-    svg.style.height = h + 'px';
-    $('#sig-grad').setAttribute('y2', h);   // le dégradé s'étend sur toute la hauteur de la page
-    svg.setAttribute('viewBox', '0 0 ' + window.innerWidth + ' ' + h);
-
-    // Un battement : ligne de base, onde P, complexe QRS, onde T
-    var d = 'M' + x0 + ' 0';
-    for (var y = 0; y < h; y += beat) {
-      d += ' L' + x0 + ' ' + (y + beat * 0.30);
-      d += ' Q' + (x0 + amp * 0.4) + ' ' + (y + beat * 0.34) + ' ' + x0 + ' ' + (y + beat * 0.38);   // onde P
-      d += ' L' + x0 + ' ' + (y + beat * 0.48);
-      d += ' L' + (x0 - amp * 0.4) + ' ' + (y + beat * 0.50);                                         // Q
-      d += ' L' + (x0 + amp) + ' ' + (y + beat * 0.56);                                               // R (pic)
-      d += ' L' + (x0 - amp * 0.7) + ' ' + (y + beat * 0.62);                                         // S
-      d += ' L' + x0 + ' ' + (y + beat * 0.65);
-      d += ' Q' + (x0 + amp * 0.6) + ' ' + (y + beat * 0.78) + ' ' + x0 + ' ' + (y + beat * 0.90);   // onde T
-      d += ' L' + x0 + ' ' + (y + beat);
-    }
-    ghost.setAttribute('d', d);
-    line.setAttribute('d', d);
-
-    pathLen = line.getTotalLength();
-    line.style.strokeDasharray = pathLen;
-    updateSignal();
-  }
-
-  function updateSignal() {
-    var total = document.documentElement.scrollHeight;
-    if (reduced) { line.style.strokeDashoffset = 0; return; }   // tracé complet, sans animation
-    // On dessine un peu plus loin que le bas de l'écran pour un effet « en direct »
-    var ratio = Math.min(1, (window.scrollY + window.innerHeight * 0.8) / total);
-    line.style.strokeDashoffset = pathLen * (1 - ratio);
-  }
-
-  var ticking = false;
-  window.addEventListener('scroll', function () {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(function () { updateSignal(); markCurrent(); ticking = false; });
-  }, { passive: true });
-
-  // Reconstruit le tracé quand la taille de la page change (resize, dépôts chargés, filtre…)
-  var rebuildTimer;
-  function scheduleBuild() {
-    clearTimeout(rebuildTimer);
-    rebuildTimer = setTimeout(buildSignal, 150);
-  }
-  if ('ResizeObserver' in window) new ResizeObserver(scheduleBuild).observe(document.body);
-  window.addEventListener('resize', scheduleBuild);
-  window.addEventListener('load', buildSignal);
-  buildSignal();
-  markCurrent();
-
-  /* ---------- 6. Anneau « moniteur cardiaque » autour de la photo ----------
-     Un cercle dont le rayon est déformé par 3 complexes QRS. */
+  // Anneau « moniteur cardiaque » autour de la photo : un cercle déformé par 3 complexes QRS
   (function buildRing() {
-    var base = $('#ring-base');
-    var pulse = $('#ring-pulse');
-    var N = 540, R = 50, beats = 3, d = '';
+    var base = $('#ring-base'), pulse = $('#ring-pulse');
+    var N = 540, R0 = 50, beats = 3, d = '';
     // Points clés d'un battement : [position 0..1, déviation radiale]
     var qrs = [[0.10, 0], [0.13, 2.2], [0.16, 0], [0.26, 0], [0.275, -3], [0.31, 11], [0.345, -6], [0.37, 0],
                [0.50, 0], [0.56, 3.5], [0.62, 0]];
@@ -168,188 +451,14 @@
     }
     for (var i = 0; i <= N; i++) {
       var f = i / N;
-      var r = R + dev((f * beats) % 1);
+      var r = R0 + dev((f * beats) % 1);
       var a = f * 2 * Math.PI - Math.PI / 2;
       d += (i ? ' L' : 'M') + (r * Math.cos(a)).toFixed(2) + ' ' + (r * Math.sin(a)).toFixed(2);
     }
-    [base, pulse].forEach(function (p) {
-      p.setAttribute('d', d);
-      p.setAttribute('pathLength', '100');   // longueur normalisée pour l'animation CSS
-    });
+    [base, pulse].forEach(function (p) { p.setAttribute('d', d); p.setAttribute('pathLength', '100'); });
   })();
 
-  /* ---------- 7. Effet machine à écrire sur l'accroche ---------- */
-  (function typewriter() {
-    var h = $('#headline');
-    if (reduced) return;                       // texte complet affiché tel quel
-    var full = h.textContent;
-    h.setAttribute('aria-label', full);        // lecteurs d'écran : phrase complète d'emblée
-    h.style.minHeight = h.offsetHeight + 'px'; // évite que la page saute pendant la frappe
-
-    // Découpe en segments (texte simple / mots surlignés) pour conserver la mise en forme
-    var parts = [];
-    Array.prototype.forEach.call(h.childNodes, function (n) {
-      parts.push({ text: n.textContent, cls: n.nodeType === 1 ? n.className : '' });
-    });
-    h.textContent = '';
-    h.classList.add('caret');
-
-    var nodes = parts.map(function (p) {
-      var el = p.cls ? document.createElement('span') : document.createTextNode('');
-      if (p.cls) el.className = p.cls;
-      // Le curseur reste à la fin : on insère avant lui via le CSS (::after), donc simple append
-      h.appendChild(el);
-      return el;
-    });
-
-    var seg = 0, pos = 0;
-    function write(n, txt) { if (n.nodeType === 3) n.nodeValue = txt; else n.textContent = txt; }
-    function tick() {
-      if (seg >= parts.length) { setTimeout(function () { h.classList.remove('caret'); }, 2500); return; }
-      pos++;
-      write(nodes[seg], parts[seg].text.slice(0, pos));
-      if (pos >= parts[seg].text.length) { seg++; pos = 0; }
-      setTimeout(tick, 32 + Math.random() * 30);
-    }
-    setTimeout(tick, 600);
-  })();
-
-  /* ---------- 8. Parallaxe des icônes du hero (suit la souris) ---------- */
-  (function parallax() {
-    if (reduced || lite) return;
-    var hero = $('#hero');
-    var items = $$('.fl').map(function (el) { return { el: el, depth: parseFloat(el.dataset.depth) || 20 }; });
-    var tx = 0, ty = 0, cx = 0, cy = 0, running = false;
-
-    function frame() {
-      // Interpolation douce vers la position cible
-      cx += (tx - cx) * 0.08;
-      cy += (ty - cy) * 0.08;
-      items.forEach(function (it) {
-        it.el.style.transform = 'translate3d(' + (cx * it.depth).toFixed(2) + 'px,' + (cy * it.depth).toFixed(2) + 'px,0)';
-      });
-      if (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) requestAnimationFrame(frame);
-      else running = false;
-    }
-    function go() { if (!running) { running = true; requestAnimationFrame(frame); } }
-
-    hero.addEventListener('mousemove', function (e) {
-      var r = hero.getBoundingClientRect();
-      tx = ((e.clientX - r.left) / r.width - 0.5) * 2;    // -1 … 1
-      ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
-      go();
-    });
-    hero.addEventListener('mouseleave', function () { tx = 0; ty = 0; go(); });
-  })();
-
-  /* ---------- 9. Tilt 3D des cartes (délégation : inclut les dépôts chargés plus tard) ---------- */
-  (function tilt() {
-    if (reduced || lite) return;
-    var last = null;
-    function reset(el) {
-      el.style.setProperty('--rx', '0deg');
-      el.style.setProperty('--ry', '0deg');
-      el.classList.remove('is-tilting');
-    }
-    document.addEventListener('mousemove', function (e) {
-      var card = e.target.closest ? e.target.closest('.tilt') : null;
-      if (last && last !== card) { reset(last); last = null; }
-      if (!card) return;
-      var r = card.getBoundingClientRect();
-      var px = (e.clientX - r.left) / r.width;
-      var py = (e.clientY - r.top) / r.height;
-      card.style.setProperty('--ry', ((px - 0.5) * 10).toFixed(2) + 'deg');
-      card.style.setProperty('--rx', (-(py - 0.5) * 8).toFixed(2) + 'deg');
-      card.style.setProperty('--gx', (px * 100).toFixed(1) + '%');
-      card.style.setProperty('--gy', (py * 100).toFixed(1) + '%');
-      card.classList.add('is-tilting');
-      last = card;
-    });
-    document.addEventListener('mouseleave', function () { if (last) { reset(last); last = null; } });
-  })();
-
-  /* ---------- 9 bis. Curseur personnalisé (petit point rose, desktop uniquement) ---------- */
-  (function cursor() {
-    if (reduced || lite) return;
-    var dot = document.createElement('div');
-    dot.id = 'cursor';
-    dot.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(dot);
-
-    var x = 0, y = 0, dx = 0, dy = 0, running = false;
-    function frame() {
-      dx += (x - dx) * 0.25;           // suit la souris avec un léger retard
-      dy += (y - dy) * 0.25;
-      dot.style.transform = 'translate3d(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px,0)';
-      if (Math.abs(x - dx) > 0.1 || Math.abs(y - dy) > 0.1) requestAnimationFrame(frame);
-      else running = false;
-    }
-    document.addEventListener('mousemove', function (e) {
-      x = e.clientX; y = e.clientY;
-      dot.classList.add('on');
-      // Le point grossit au-dessus des éléments cliquables
-      var hot = e.target.closest && e.target.closest('a, button, [role="button"], input, textarea');
-      dot.classList.toggle('big', !!hot);
-      if (!running) { running = true; requestAnimationFrame(frame); }
-    });
-    document.addEventListener('mouseleave', function () { dot.classList.remove('on'); });
-  })();
-
-  /* ---------- 10. Filtre des compétences ---------- */
-  var chips = $$('.chip');
-  var groups = $$('.skill-group');
-  chips.forEach(function (chip) {
-    chip.addEventListener('click', function () {
-      var f = chip.getAttribute('data-filter');
-      chips.forEach(function (c) {
-        var on = c === chip;
-        c.classList.toggle('is-active', on);
-        c.setAttribute('aria-pressed', String(on));
-      });
-      groups.forEach(function (g) {
-        var hide = f !== 'all' && g.getAttribute('data-cat') !== f;
-        g.classList.toggle('is-hidden', hide);
-        if (!hide) {
-          // Relance l'animation en cascade des badges
-          g.classList.add('replay');
-          void g.offsetWidth;            // force le recalcul du style
-          g.classList.remove('replay');
-        }
-      });
-    });
-  });
-
-  /* ---------- 11. Modale « étude de cas » ---------- */
-  var lastFocus = null;
-
-  function openModal(m) {
-    lastFocus = document.activeElement;
-    m.hidden = false;
-    document.body.style.overflow = 'hidden';
-    $('.modal-close', m).focus();
-  }
-  function closeModal(m) {
-    m.hidden = true;
-    document.body.style.overflow = '';
-    if (lastFocus) lastFocus.focus();
-  }
-
-  $$('[data-modal]').forEach(function (card) {
-    var m = document.getElementById(card.getAttribute('data-modal'));
-    card.addEventListener('click', function () { openModal(m); });
-    card.addEventListener('keydown', function (e) {   // accessibilité clavier
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(m); }
-    });
-  });
-  $$('.modal').forEach(function (m) {
-    $('.modal-close', m).addEventListener('click', function () { closeModal(m); });
-    m.addEventListener('click', function (e) { if (e.target === m) closeModal(m); }); // clic sur le fond
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') $$('.modal:not([hidden])').forEach(closeModal);
-  });
-
-  /* ---------- 12. Dépôts GitHub (topic « portfolio ») ---------- */
+  /* ---------- 8. Dépôts GitHub (topic « portfolio ») ---------- */
   var reposBox = $('#repos');
 
   // Crée un élément avec classe et texte (textContent : pas d'injection HTML depuis l'API)
@@ -379,7 +488,7 @@
     reposBox.appendChild(box);
   }
   function repoCard(r, i) {
-    var card = el('article', 'card repo tilt');
+    var card = el('article', 'card repo');
     card.style.setProperty('--i', i);
     card.appendChild(el('h3', '', r.name));
     card.appendChild(el('p', '', r.description || 'Pas de description pour le moment.'));
@@ -433,7 +542,7 @@
   }
   loadRepos();
 
-  /* ---------- 13. Formulaire de contact (Formspree) ---------- */
+  /* ---------- 9. Formulaire de contact (Formspree) ---------- */
   var form = $('#contact-form');
   var status = $('#form-status');
 
@@ -466,13 +575,13 @@
       body: new FormData(form),
       headers: { 'Accept': 'application/json' }
     }).then(function (r) {
-      if (r.ok) { say('Merci ! Ton message a bien été envoyé.', 'ok'); form.reset(); }
+      if (r.ok) { say('Merci ! Ta carte a bien été envoyée.', 'ok'); form.reset(); }
       else say('Une erreur est survenue. Réessaie ou contacte-moi via LinkedIn.', 'err');
     }).catch(function () {
       say('Connexion impossible. Réessaie dans un instant.', 'err');
     });
   });
 
-  /* ---------- 14. Année du pied de page ---------- */
+  // Année du pied de page
   $('#year').textContent = new Date().getFullYear();
 })();
